@@ -1,0 +1,195 @@
+import React from 'react'
+import { useAuthStore } from '@features/auth/store'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { clsx } from 'clsx'
+import { ROUTES } from '@configs/app.config'
+import { useNotifications } from '../hooks/useNotifications'
+
+interface PharmacistLayoutProps {
+  children: React.ReactNode
+}
+
+export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
+  const { user, logout } = useAuthStore()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [isNotifOpen, setIsNotifOpen] = React.useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentSearch = searchParams.get('search') ?? ''
+  
+  // Destructure all needed counts from the hook
+  const { unreadCount, reportsCount, messagesCount } = useNotifications()
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    if (value) {
+      setSearchParams({ search: value })
+    } else {
+      searchParams.delete('search')
+      setSearchParams(searchParams)
+    }
+  }
+
+  const navItems = [
+    { label: 'Antrean Laporan', icon: 'assignment', path: '/pharma/dashboard' },
+    { label: 'Data Pasien', icon: 'group', path: '/pharma/patients' },
+    { label: 'Manajemen Edukasi', icon: 'school', path: '/pharma/education' },
+    { label: 'Pengaturan Jadwal', icon: 'calendar_today', path: '/pharma/schedule' },
+  ]
+
+  return (
+    <div className="bg-surface text-on-surface min-h-screen font-body antialiased">
+      {/* SIDEBAR */}
+      <aside className="h-screen w-64 fixed left-0 top-0 bg-stone-50 border-r border-stone-100 font-headline flex flex-col py-6 z-50 overflow-y-auto">
+        <div className="px-6 mb-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>medical_services</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-teal-800 leading-tight">Sentuhan Nurani</h1>
+              <p className="text-[10px] uppercase tracking-widest text-stone-400 font-semibold">Clinical Portal</p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 px-3 space-y-1">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={clsx(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300",
+                  isActive 
+                    ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20 font-bold" 
+                    : "text-stone-500 hover:text-teal-600 hover:bg-stone-100"
+                )}
+              >
+                <span className="material-symbols-outlined">{item.icon}</span>
+                <span className="text-sm">{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="px-3 border-t border-stone-100 pt-4">
+          <Link 
+            to={ROUTES.PHARMA_HELP}
+            className="w-full flex items-center gap-3 px-4 py-3 text-stone-500 hover:text-teal-600 hover:bg-stone-100 transition-colors duration-300 rounded-lg text-left"
+          >
+            <span className="material-symbols-outlined">help_outline</span>
+            <span className="text-sm">Bantuan</span>
+          </Link>
+          <button 
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-stone-500 hover:text-teal-600 hover:bg-stone-100 transition-colors duration-300 rounded-lg text-left"
+          >
+            <span className="material-symbols-outlined">logout</span>
+            <span className="text-sm">Keluar</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="ml-64 flex flex-col min-h-screen">
+        {/* HEADER */}
+        <header className="h-16 border-b border-stone-100 bg-white/80 backdrop-blur-xl sticky top-0 z-40 px-8 flex items-center justify-between">
+          <div className="flex items-center bg-stone-100 rounded-full px-4 py-1.5 w-96">
+            <span className="material-symbols-outlined text-stone-400 text-lg">search</span>
+            <input 
+              value={currentSearch}
+              onChange={handleSearchChange}
+              className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-stone-400 outline-none" 
+              placeholder="Cari nama pasien..." 
+              type="text"
+            />
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <button 
+                  onClick={() => setIsNotifOpen(!isNotifOpen)}
+                  className="text-stone-600 hover:text-teal-600 transition-all opacity-90 active:scale-95 relative"
+                >
+                  <span className="material-symbols-outlined">notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600 text-[9px] text-white items-center justify-center font-black">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    </span>
+                  )}
+                </button>
+
+                {/* Dropdown Notifikasi */}
+                {isNotifOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)} />
+                    <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-stone-100 py-4 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-6 pb-3 border-b border-stone-50 flex justify-between items-center">
+                        <h4 className="font-bold text-on-surface">Notifikasi</h4>
+                        <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full uppercase tracking-widest">{unreadCount} Baru</span>
+                      </div>
+                      <div className="max-h-[320px] overflow-y-auto">
+                        {unreadCount === 0 ? (
+                          <div className="py-10 px-6 text-center">
+                            <p className="text-xs text-stone-400 font-medium">Tidak ada notifikasi baru.</p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-stone-50">
+                            {reportsCount > 0 && (
+                              <div className="px-6 py-4 hover:bg-stone-50 transition-colors cursor-pointer" onClick={() => { navigate(ROUTES.PHARMA_DASHBOARD); setIsNotifOpen(false); }}>
+                                <p className="text-xs font-bold text-on-surface">Laporan Baru</p>
+                                <p className="text-[10px] text-stone-500 mt-1">Ada {reportsCount} laporan yang perlu ditinjau.</p>
+                              </div>
+                            )}
+                            {messagesCount > 0 && (
+                              <div className="px-6 py-4 hover:bg-stone-50 transition-colors cursor-pointer" onClick={() => { navigate(ROUTES.PHARMA_CHAT); setIsNotifOpen(false); }}>
+                                <p className="text-xs font-bold text-teal-600">Pesan Konsultasi</p>
+                                <p className="text-[10px] text-stone-500 mt-1">Ada {messagesCount} pesan baru dari pasien.</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <button 
+                onClick={() => navigate('/pharma/settings')}
+                className="text-stone-600 hover:text-teal-600 transition-all opacity-90 active:scale-95"
+              >
+                <span className="material-symbols-outlined">settings</span>
+              </button>
+            </div>
+
+            <div className="h-8 w-[1px] bg-stone-200"></div>
+            
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-xs font-bold text-teal-700">Apoteker</p>
+                <p className="text-[10px] text-stone-500">{user?.fullName ?? 'Sari'}</p>
+              </div>
+              <img 
+                alt="Avatar" 
+                className="w-9 h-9 rounded-full object-cover ring-2 ring-teal-50" 
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? 'Sari')}&background=0d9488&color=ffffff`}
+              />
+            </div>
+          </div>
+        </header>
+
+        {/* MAIN CONTENT */}
+        <main className="flex-1 bg-stone-50/50">
+          {children}
+        </main>
+      </div>
+    </div>
+  )
+}

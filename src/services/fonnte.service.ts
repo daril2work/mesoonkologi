@@ -1,0 +1,39 @@
+import { supabase } from '@lib/supabase'
+
+export interface WAOptions {
+  target: string    // Phone number (e.g., 628123456789)
+  message: string   // Content of the message
+  delay?: number    // Delay in seconds
+}
+
+export const fonnteService = {
+  /**
+   * Send a WhatsApp message via Supabase Edge Function
+   */
+  async sendMessage({ target, message }: WAOptions) {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
+        body: { target, message }
+      })
+
+      if (error) throw error
+      
+      if (!data.status) {
+        throw new Error(data.reason || 'Gagal mengirim pesan WA via Edge Function')
+      }
+
+      return data
+    } catch (error) {
+      // Perhatikan: logger.error bisa digunakan di sini jika sudah diimport
+      console.error('[FonnteService Error]', error)
+      throw error
+    }
+  },
+
+  /**
+   * Format reminder message for patient
+   */
+  formatReminderMessage(patientName: string, date: string, time: string, title: string) {
+    return `Halo Ibu/Bapak *${patientName}*,\n\nKami dari tim *Sahabat Pejuang* ingin mengingatkan jadwal *${title}* Anda pada:\n\n🗓️ Tanggal: *${date}*\n⏰ Jam: *${time}*\n\nMohon hadir tepat waktu. Jika ada kendala, silakan hubungi kami melalui fitur chat di aplikasi. Terima kasih.`
+  }
+}

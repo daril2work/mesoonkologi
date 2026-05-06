@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  /* === Sentuhan Nurani - Material 3 Design Tokens === */
+  --color-primary: #046b5e;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #acfeed;
+  --color-on-primary-container: #20786b;
+  
+  --color-secondary: #8c33b3;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d97dff;
+  
+  --color-tertiary: #b90c55;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ffe9ec;
+  --color-on-tertiary-container: #cc2262;
+
+  /* === S-07: Clinical Semantic Aliases ===
+   * Menggantikan hex literal bg-[#b90c55] dan bg-[#006a60]
+   * yang tersebar di 20+ tempat di seluruh codebase.
+   * Gunakan: bg-clinical-alert, text-clinical-teal, dll.
+   */
+  --color-clinical-alert: #b90c55;        /* Magenta eskalasi & sentinel */
+  --color-clinical-alert-muted: #ffe9ec;  /* Background alert ringan */
+  --color-clinical-teal: #006a60;         /* Teal dokter/klinisi */
+  --color-clinical-teal-muted: #e0f2f0;   /* Background teal ringan */
+
+  
+  --color-surface: #fcf9f8;
+  --color-on-surface: #1b1c1c;
+  --color-surface-variant: #e5e2e1;
+  --color-on-surface-variant: #424848;
+  
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0eded;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e5e2e1;
+  
+  --color-outline: #727878;
+  --color-outline-variant: #c2c8c7;
+
+  /* Typography Fonts */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-headline: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Radius System */
+  --radius-DEFAULT: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  .headline-font {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(4, 107, 94, 0.2);
+}
