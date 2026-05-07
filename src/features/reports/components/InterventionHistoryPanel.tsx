@@ -1,4 +1,3 @@
-import { clsx } from 'clsx'
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { useInterventions } from '../api/useInterventions'

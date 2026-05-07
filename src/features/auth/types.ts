@@ -32,4 +32,5 @@ export interface MedicProfile {
   employeeId: string
   hospitalId?: string
   avatarUrl?: string
+  role?: string
 }

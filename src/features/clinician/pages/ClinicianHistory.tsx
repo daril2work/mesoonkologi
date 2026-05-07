@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import ClinicianLayout from '../components/ClinicianLayout'
 import { useClinicianHistory } from '../api/useClinicianHistory'
-import { formatDistanceToNow, format } from 'date-fns'
+import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { clsx } from 'clsx'
 
@@ -12,8 +12,8 @@ export default function ClinicianHistory() {
 
   // M-06: Implement search logic
   const filteredHistory = history.filter(r => 
-    r.patient.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.patient.id.toLowerCase().includes(searchQuery.toLowerCase())
+    r.patient?.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.patient?.id.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
@@ -58,7 +58,7 @@ export default function ClinicianHistory() {
             filteredHistory.map((report) => (
               <Link 
                 key={report.id} 
-                to={`/doctor/patient/${report.patient.id}`} 
+                to={`/doctor/patient/${report.patient?.id}`} 
                 className="group p-8 bg-white rounded-[40px] border border-stone-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden"
               >
                 <div className="flex justify-between items-start mb-6">
@@ -67,8 +67,8 @@ export default function ClinicianHistory() {
                         <span className="material-symbols-outlined text-3xl">account_circle</span>
                      </div>
                      <div>
-                        <h3 className="text-xl font-black text-stone-700 headline-font">{report.patient.fullName}</h3>
-                        <p className="text-[10px] font-black text-stone-300 uppercase tracking-widest">ID: #P-{report.patient.id.slice(0, 5).toUpperCase()}</p>
+                        <h3 className="text-xl font-black text-stone-700 headline-font">{report.patient?.fullName}</h3>
+                        <p className="text-[10px] font-black text-stone-300 uppercase tracking-widest">ID: #P-{report.patient?.id.slice(0, 5).toUpperCase()}</p>
                      </div>
                   </div>
                   <span className="px-4 py-1.5 bg-stone-100 text-stone-500 rounded-xl text-[9px] font-black uppercase tracking-widest">

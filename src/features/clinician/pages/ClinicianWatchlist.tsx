@@ -12,7 +12,7 @@ export default function ClinicianWatchlist() {
 
   // M-05: Implement filtering logic
   const filteredWatchlist = watchlist?.filter(r => 
-    selectedWard === 'Semua Bangsal' || r.patient.ward === selectedWard
+    selectedWard === 'Semua Bangsal' || r.patient?.ward === selectedWard
   )
 
   const majorCount = filteredWatchlist?.filter(r => r.isSentinelAlert || r.escalationStatus === 'escalated').length ?? 0
@@ -109,23 +109,23 @@ export default function ClinicianWatchlist() {
                     return (
                       <tr key={report.id} className="hover:bg-[#f6fbf9]/50 transition-colors cursor-pointer group">
                         <td className="px-8 py-6">
-                          <span className="text-xs font-black text-stone-300 uppercase tracking-tight group-hover:text-stone-500">#PX-{report.patient.id.slice(0, 5).toUpperCase()}</span>
+                          <span className="text-xs font-black text-stone-300 uppercase tracking-tight group-hover:text-stone-500">#PX-{report.patient?.id.slice(0, 5).toUpperCase()}</span>
                         </td>
                         <td className="px-8 py-6">
-                          <Link to={`/doctor/patient/${report.patient.id}/${report.id}`} className="flex items-center gap-4">
+                          <Link to={`/doctor/patient/${report.patient?.id}/${report.id}`} className="flex items-center gap-4">
                             <div className={clsx(
                               "w-10 h-10 rounded-full flex items-center justify-center font-black text-xs border-2 border-white shadow-sm",
                               isMajor ? "bg-red-50 text-red-600" : "bg-teal-50 text-teal-600"
                             )}>
-                              {report.patient.fullName.split(' ').map(n => n[0]).join('')}
+                              {report.patient?.fullName ? report.patient.fullName.split(' ').map(n => n[0]).join('') : ''}
                             </div>
-                            <span className="font-bold text-stone-700">{report.patient.fullName}</span>
+                            <span className="font-bold text-stone-700">{report.patient?.fullName}</span>
                           </Link>
                         </td>
                         <td className="px-8 py-6">
                           <div className="flex flex-col">
-                            <span className="font-bold text-stone-700 text-sm">{report.patient.ward}</span>
-                            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Siklus {report.patient.currentCycle}</span>
+                            <span className="font-bold text-stone-700 text-sm">{report.patient?.ward}</span>
+                            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Siklus {report.patient?.currentCycle}</span>
                           </div>
                         </td>
                         <td className="px-8 py-6">
@@ -145,7 +145,7 @@ export default function ClinicianWatchlist() {
                         </td>
                         <td className="px-8 py-6">
                           <Link 
-                            to={`/doctor/patient/${report.patient.id}/${report.id}`}
+                            to={`/doctor/patient/${report.patient?.id}/${report.id}`}
                             className={clsx(
                               "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest inline-block text-center",
                               isMajor ? "bg-[#b90c55] text-white shadow-md shadow-[#b90c55]/20" : "bg-[#40e0d0] text-teal-900"
@@ -171,7 +171,7 @@ export default function ClinicianWatchlist() {
             return (
               <Link 
                 key={report.id} 
-                to={`/doctor/patient/${report.patient.id}/${report.id}`} 
+                to={`/doctor/patient/${report.patient?.id}/${report.id}`} 
                 className={clsx(
                   "block p-6 bg-white rounded-[32px] border-l-[12px] shadow-sm relative overflow-hidden active:scale-[0.98] transition-all",
                   isMajor ? "border-red-600 bg-red-50/20" : "border-teal-600 bg-teal-50/20"
@@ -192,17 +192,17 @@ export default function ClinicianWatchlist() {
                 <div className="flex items-center gap-5">
                   <div className="w-16 h-16 rounded-2xl bg-stone-100 overflow-hidden border-2 border-white shadow-sm shrink-0">
                     <img 
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(report.patient.fullName)}&background=${isMajor ? 'fee2e2' : 'ccfbf1'}&color=${isMajor ? 'b91c1c' : '0d9488'}&bold=true`} 
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(report.patient?.fullName || '')}&background=${isMajor ? 'fee2e2' : 'ccfbf1'}&color=${isMajor ? 'b91c1c' : '0d9488'}&bold=true`} 
                       className="w-full h-full object-cover"
-                      alt={report.patient.fullName}
+                      alt={report.patient?.fullName}
                     />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-black text-stone-700 headline-font">{report.patient.fullName}</h3>
-                    <p className="text-xs font-black text-stone-400 uppercase tracking-widest">ID: #P-{report.patient.id.slice(0, 5).toUpperCase()}</p>
+                    <h3 className="text-xl font-black text-stone-700 headline-font">{report.patient?.fullName}</h3>
+                    <p className="text-xs font-black text-stone-400 uppercase tracking-widest">ID: #P-{report.patient?.id.slice(0, 5).toUpperCase()}</p>
                     <div className="flex items-center gap-2 mt-2">
                        <span className="material-symbols-outlined text-[#006a60] text-sm">bed</span>
-                       <span className="text-[10px] font-black text-[#006a60] uppercase tracking-widest">{report.patient.ward} / Siklus {report.patient.currentCycle}</span>
+                       <span className="text-[10px] font-black text-[#006a60] uppercase tracking-widest">{report.patient?.ward} / Siklus {report.patient?.currentCycle}</span>
                     </div>
                   </div>
                 </div>

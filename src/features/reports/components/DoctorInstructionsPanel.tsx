@@ -1,4 +1,3 @@
-import { clsx } from 'clsx'
 
 interface DoctorInstructionsPanelProps {
   doctorNotes?: string

@@ -13,7 +13,7 @@ interface InterventionModalProps {
   reportId?: string
 }
 
-export function InterventionModal({ isOpen, onClose, patientId, reportId }: InterventionModalProps) {
+export function InterventionModal({ isOpen, onClose, patientId: _patientId, reportId }: InterventionModalProps) {
   const [content, setContent] = useState('')
   const submitIntervention = useSubmitIntervention()
 

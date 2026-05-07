@@ -6,7 +6,7 @@ export function useReportEscalation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ reportId, notes }: { reportId: string; notes?: string }) => {
+    mutationFn: async ({ reportId, notes: _notes }: { reportId: string; notes?: string }) => {
       const { data, error } = await supabase
         .from('symptom_reports')
         .update({ 

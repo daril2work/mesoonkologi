@@ -37,7 +37,7 @@ export default function PharmacistEducation() {
   // Client-side filtering for better UX responsiveness
   const filteredMaterials = materials?.filter(m => {
     const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         m.description.toLowerCase().includes(searchTerm.toLowerCase())
+                         (m.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
     const matchesCategory = selectedCategory === 'Semua' || m.category === selectedCategory
     return matchesSearch && matchesCategory
   }) || []

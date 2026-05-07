@@ -6,7 +6,6 @@
 import { Link } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { camelToWords } from '@utils/helpers'
 import { ROUTES } from '@configs/app.config'
 import { SYMPTOM_KEYS, SENTINEL_KEYS, REPORT_SCHEMA } from '@features/reports/constants/symptoms.domain'
 import type { QueueReport } from '../api/usePharmacistQueue'
