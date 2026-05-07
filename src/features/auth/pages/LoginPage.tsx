@@ -192,6 +192,7 @@ export default function LoginPage() {
           <div style={{ textAlign: 'center', marginTop: -4, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <button
               type="button"
+              onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#3e4948', fontFamily: 'inherit', padding: '4px 0', minHeight: 32 }}
             >
               Lupa kata sandi?

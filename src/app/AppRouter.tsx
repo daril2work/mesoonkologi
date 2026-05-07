@@ -10,6 +10,8 @@ import { useAppInitializer } from './useAppInitializer'
 // Lazy load pages (code splitting)
 const LoginPage = lazy(() => import('@features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@features/auth/pages/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('@features/auth/pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('@features/auth/pages/ResetPasswordPage'))
 const PatientDashboard = lazy(() => import('@features/reports/pages/PatientDashboard'))
 const ReportForm = lazy(() => import('@features/reports/pages/ReportForm'))
 const PatientHistory = lazy(() => import('@features/reports/pages/PatientHistory'))
@@ -49,6 +51,8 @@ export default function AppRouter() {
         {/* Public Routes */}
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
         <Route path={ROUTES.PRIVACY_POLICY} element={<PrivacyPolicy />} />
         <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.LOGIN} replace />} />
 
