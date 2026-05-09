@@ -8,10 +8,11 @@ CREATE TABLE IF NOT EXISTS system_settings (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Seed initial row values for Pharmacist & Doctor In-Charge
+-- Seed initial row values for Pharmacist & Doctor In-Charge and Fonnte Token
 INSERT INTO system_settings (key, value) VALUES 
 ('pharmacist_wa', ''),
-('doctor_wa', '')
+('doctor_wa', ''),
+('fonnte_token', '')
 ON CONFLICT (key) DO NOTHING;
 
 -- Enable Row Level Security

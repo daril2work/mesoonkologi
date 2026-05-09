@@ -11,8 +11,11 @@ export default function PharmacistSettings() {
   const { user } = useAuthStore()
   const [pharmacistWa, setPharmacistWa] = useState('')
   const [doctorWa, setDoctorWa] = useState('')
+  const [fonnteToken, setFonnteToken] = useState('')
+  const [showToken, setShowToken] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSavingToken, setIsSavingToken] = useState(false)
 
   // Fetch current WhatsApp settings from Supabase
   useEffect(() => {
@@ -27,8 +30,10 @@ export default function PharmacistSettings() {
         if (data) {
           const pharmaSetting = data.find((item) => item.key === 'pharmacist_wa')
           const docSetting = data.find((item) => item.key === 'doctor_wa')
+          const tokenSetting = data.find((item) => item.key === 'fonnte_token')
           if (pharmaSetting) setPharmacistWa(pharmaSetting.value)
           if (docSetting) setDoctorWa(docSetting.value)
+          if (tokenSetting) setFonnteToken(tokenSetting.value)
         }
       } catch (error) {
         console.error('[LoadSettings Error]', error)
@@ -61,6 +66,30 @@ export default function PharmacistSettings() {
       toast.error('Gagal menyimpan pengaturan WhatsApp.')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  // Handle saving Fonnte API Token
+  const handleSaveFonnteToken = async () => {
+    setIsSavingToken(true)
+    try {
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert([
+          { key: 'fonnte_token', value: fonnteToken.trim() }
+        ])
+
+      if (error) throw error
+      
+      toast.success('Token API Fonnte berhasil disimpan!', {
+        icon: '🔑',
+        style: { border: '1px solid #e5f9f5' }
+      })
+    } catch (error) {
+      console.error('[SaveToken Error]', error)
+      toast.error('Gagal menyimpan Token Fonnte.')
+    } finally {
+      setIsSavingToken(false)
     }
   }
 
@@ -109,25 +138,39 @@ export default function PharmacistSettings() {
                   </div>
                 </div>
                 
-                {/* Fonnte API Token Input (Readonly representation as per original) */}
+                {/* Fonnte API Token Input */}
                 <div className="space-y-3 pt-2 border-t border-emerald-100/40">
                   <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Fonnte API Token</label>
                   <div className="flex gap-3">
-                    <input 
-                      type="password" 
-                      className="flex-grow bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 ring-primary/20 outline-none"
-                      defaultValue="**************************"
-                      disabled
-                    />
+                    <div className="relative flex-grow">
+                      <input 
+                        type={showToken ? "text" : "password"} 
+                        placeholder="Masukkan Token Fonnte Anda"
+                        className="w-full bg-white border border-stone-200 rounded-xl pl-4 pr-12 py-3 text-sm font-medium focus:ring-2 ring-primary/20 outline-none"
+                        value={fonnteToken}
+                        onChange={(e) => setFonnteToken(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowToken(!showToken)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors flex items-center"
+                        title={showToken ? "Sembunyikan" : "Tampilkan"}
+                      >
+                        <span className="material-symbols-outlined text-lg leading-none">
+                          {showToken ? "visibility_off" : "visibility"}
+                        </span>
+                      </button>
+                    </div>
                     <button 
-                      disabled
-                      className="bg-stone-50 border border-stone-200 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-stone-400 cursor-not-allowed"
+                      onClick={handleSaveFonnteToken}
+                      disabled={isSavingToken}
+                      className="bg-[#1a7a7a] hover:bg-[#156363] text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shrink-0"
                     >
-                      Simpan
+                      {isSavingToken ? 'Menyimpan...' : 'Simpan'}
                     </button>
                   </div>
                   <p className="text-[10px] text-stone-400">
-                    * Token dikonfigurasi secara aman melalui variabel lingkungan Supabase Edge Function.
+                    * Token disimpan secara aman di dalam database untuk pemicu notifikasi otomatis.
                   </p>
                 </div>
 
