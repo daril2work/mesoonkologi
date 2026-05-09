@@ -13,9 +13,39 @@ export default function PharmacistSettings() {
   const [doctorWa, setDoctorWa] = useState('')
   const [fonnteToken, setFonnteToken] = useState('')
   const [showToken, setShowToken] = useState(false)
+  const [fonnteStatus, setFonnteStatus] = useState<'loading' | 'connect' | 'disconnect' | 'invalid'>('loading')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isSavingToken, setIsSavingToken] = useState(false)
+
+  const checkFonnteStatus = async (tokenToUse: string) => {
+    if (!tokenToUse) {
+      setFonnteStatus('disconnect')
+      return
+    }
+    setFonnteStatus('loading')
+    try {
+      const response = await fetch('https://api.fonnte.com/device', {
+        method: 'POST',
+        headers: {
+          'Authorization': tokenToUse
+        }
+      })
+      const data = await response.json()
+      if (data && data.status === true) {
+        if (data.device_status === 'connect') {
+          setFonnteStatus('connect')
+        } else {
+          setFonnteStatus('disconnect')
+        }
+      } else {
+        setFonnteStatus('invalid')
+      }
+    } catch (error) {
+      console.error('[CheckFonnteStatus Error]', error)
+      setFonnteStatus('disconnect')
+    }
+  }
 
   // Fetch current WhatsApp settings from Supabase
   useEffect(() => {
@@ -33,7 +63,12 @@ export default function PharmacistSettings() {
           const tokenSetting = data.find((item) => item.key === 'fonnte_token')
           if (pharmaSetting) setPharmacistWa(pharmaSetting.value)
           if (docSetting) setDoctorWa(docSetting.value)
-          if (tokenSetting) setFonnteToken(tokenSetting.value)
+          if (tokenSetting && tokenSetting.value) {
+            setFonnteToken(tokenSetting.value)
+            checkFonnteStatus(tokenSetting.value)
+          } else {
+            setFonnteStatus('disconnect')
+          }
         }
       } catch (error) {
         console.error('[LoadSettings Error]', error)
@@ -85,6 +120,8 @@ export default function PharmacistSettings() {
         icon: '🔑',
         style: { border: '1px solid #e5f9f5' }
       })
+      // Re-check status with the newly saved token
+      checkFonnteStatus(fonnteToken.trim())
     } catch (error) {
       console.error('[SaveToken Error]', error)
       toast.error('Gagal menyimpan Token Fonnte.')
@@ -134,7 +171,21 @@ export default function PharmacistSettings() {
                   </div>
                   <div>
                     <h4 className="font-bold text-emerald-900 text-sm">Fonnte WhatsApp Gateway</h4>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Status: Terhubung</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-emerald-800 font-black uppercase tracking-widest">Status:</span>
+                      {fonnteStatus === 'loading' && (
+                        <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">Memeriksa...</span>
+                      )}
+                      {fonnteStatus === 'connect' && (
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase tracking-wider">Terhubung (Aktif)</span>
+                      )}
+                      {fonnteStatus === 'disconnect' && (
+                        <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Terputus / Kosong</span>
+                      )}
+                      {fonnteStatus === 'invalid' && (
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Token Tidak Valid</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
