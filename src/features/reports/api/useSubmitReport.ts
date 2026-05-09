@@ -8,6 +8,7 @@ import { useAuthStore } from '@features/auth/store'
 import toast from 'react-hot-toast'
 import { detectSentinel, autoGrade } from '@utils/sentinel'
 import { logger } from '@utils/logger'
+import { fonnteService } from '@/services/fonnte.service'
 
 export function useSubmitReport() {
   const queryClient = useQueryClient()
@@ -50,6 +51,28 @@ export function useSubmitReport() {
         duration: 5000,
         style: { border: '1px solid #e5f9f5' }
       })
+
+      // Alert Apoteker Jaga jika terjadi Sentinel Alert (MESO Mayor)
+      if (data?.is_sentinel_alert) {
+        supabase
+          .from('system_settings')
+          .select('value')
+          .eq('key', 'pharmacist_wa')
+          .single()
+          .then(async ({ data: settingData }) => {
+            const recipient = settingData?.value
+            if (recipient) {
+              await fonnteService.sendMessage({
+                target: recipient,
+                message: 'CITO! Ada laporan MESO yang perlu anda tindak lanjuti segera!'
+              })
+              logger.info('[SubmitReport WA Alert] Alert successfully sent to pharmacist', { recipient })
+            }
+          })
+          .catch((err) => {
+            logger.error('[SubmitReport WA Alert Error]', err)
+          })
+      }
     },
     onError: (error) => {
       logger.error('[SubmitReport]', error)

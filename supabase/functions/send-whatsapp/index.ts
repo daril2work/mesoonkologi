@@ -13,7 +13,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { target, message } = await req.json()
+    const { target, message, schedule } = await req.json()
     // @ts-ignore: Deno context
     const token = Deno.env.get('FONNTE_TOKEN')
 
@@ -34,6 +34,9 @@ serve(async (req: Request) => {
     form.append('target', cleanTarget)
     form.append('message', message)
     form.append('countryCode', '62')
+    if (schedule) {
+      form.append('schedule', String(schedule))
+    }
 
     const res = await fetch('https://api.fonnte.com/send', {
       method: 'POST',

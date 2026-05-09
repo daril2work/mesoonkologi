@@ -9,7 +9,11 @@ import { fonnteService } from '@/services/fonnte.service'
 import toast from 'react-hot-toast'
 
 export default function PharmacistSchedule() {
-  const { data: schedules, isLoading } = usePharmacistSchedules()
+  const [viewType, setViewType] = useState<'monthly' | 'weekly'>('monthly')
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+
+  const { data: schedules, isLoading } = usePharmacistSchedules(currentDate)
   const { data: patients } = usePatientDirectory()
   const createScheduleMutation = useCreateSchedule()
 
@@ -32,14 +36,50 @@ export default function PharmacistSchedule() {
     }
 
     try {
+      // M-01 Fix: Konversi waktu lokal WIB (GMT+7) ke ISO string yang benar
+      // Menggunakan `+07:00` agar jadwal tersimpan dengan offset zona waktu yang akurat
+      const scheduleISODate = `${formData.date}T${formData.time}:00+07:00`
       await createScheduleMutation.mutateAsync({
         patient_id: formData.patientId,
         title: formData.title,
-        schedule_date: `${formData.date}T${formData.time}:00Z`,
+        schedule_date: scheduleISODate,
         location: formData.location
       })
       toast.success('Jadwal berhasil ditambahkan')
       setIsModalOpen(false)
+
+      // Otomatisasi WA Reminder H-1 via Fonnte Scheduled API
+      try {
+        const activePatient = patients?.find(p => p.id === formData.patientId)
+        if (activePatient && activePatient.phoneNumber) {
+          // Hitung H-1 (24 jam sebelum waktu jadwal) — gunakan waktu lokal WIB
+          const appointmentTime = new Date(`${formData.date}T${formData.time}:00+07:00`)
+          const reminderTime = new Date(appointmentTime.getTime() - 24 * 60 * 60 * 1000)
+          
+          // Fallback jika sudah lewat (janji hari ini/besok pagi), jadwalkan 5 menit dari sekarang
+          const now = new Date()
+          const targetTime = reminderTime > now ? reminderTime : new Date(now.getTime() + 5 * 60 * 1000)
+          
+          const scheduleTimestamp = Math.floor(targetTime.getTime() / 1000)
+
+          const formattedMsg = fonnteService.formatReminderMessage(
+            activePatient.fullName,
+            format(appointmentTime, 'eeee, d MMMM yyyy', { locale: id }),
+            formData.time,
+            formData.title
+          )
+
+          await fonnteService.sendMessage({
+            target: activePatient.phoneNumber,
+            message: formattedMsg,
+            schedule: scheduleTimestamp
+          })
+          toast.success('WhatsApp Reminder H-1 dijadwalkan otomatis')
+        }
+      } catch (waError) {
+        console.error('[Scheduled WA Error]', waError)
+        toast.error('Gagal menjadwalkan WA otomatis, namun jadwal berhasil disimpan')
+      }
     } catch (error: any) {
       console.error('[CreateSchedule Error]', error)
       toast.error(`Gagal: ${error.message || 'Cek koneksi database'}`)
@@ -73,22 +113,51 @@ export default function PharmacistSchedule() {
   }
 
   const today = new Date()
-  const monthStart = startOfMonth(today)
-  const monthEnd = endOfMonth(today)
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 })
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 })
 
-  const calendarDays = eachDayOfInterval({
-    start: calendarStart,
-    end: calendarEnd,
-  })
+  // Hitung rentang hari kalender dinamis (Bulanan vs Mingguan)
+  const calendarDays = viewType === 'monthly'
+    ? eachDayOfInterval({
+        start: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }),
+        end: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 }),
+      })
+    : eachDayOfInterval({
+        start: startOfWeek(currentDate, { weekStartsOn: 0 }),
+        end: endOfWeek(currentDate, { weekStartsOn: 0 }),
+      })
 
   const todaySchedules = schedules?.filter(s => isSameDay(new Date(s.scheduleDate), today)) || []
+  const activeDaySchedules = schedules?.filter(s => isSameDay(new Date(s.scheduleDate), selectedDate)) || []
   const upcomingSchedules = schedules?.filter(s => new Date(s.scheduleDate) > today).slice(0, 5) || []
 
   const getSchedulesForDay = (day: Date) => {
     return schedules?.filter(s => isSameDay(new Date(s.scheduleDate), day)) || []
   }
+
+  const handlePrevDate = () => {
+    setCurrentDate(prev => {
+      if (viewType === 'monthly') {
+        return new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+      } else {
+        const prevWeek = new Date(prev)
+        prevWeek.setDate(prev.getDate() - 7)
+        return prevWeek
+      }
+    })
+  }
+
+  const handleNextDate = () => {
+    setCurrentDate(prev => {
+      if (viewType === 'monthly') {
+        return new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+      } else {
+        const nextWeek = new Date(prev)
+        nextWeek.setDate(prev.getDate() + 7)
+        return nextWeek
+      }
+    })
+  }
+
+  const isSelectedToday = isSameDay(selectedDate, today)
 
   return (
     <PharmacistLayout>
@@ -101,15 +170,59 @@ export default function PharmacistSchedule() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-4xl font-extrabold font-headline text-on-surface tracking-tight">Jadwal Klinis</h2>
-                <p className="text-on-surface-variant mt-1 font-medium">{format(today, 'MMMM yyyy', { locale: id })}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <button 
+                    onClick={handlePrevDate}
+                    className="p-1 hover:bg-stone-100 rounded-full transition-colors flex items-center justify-center text-stone-500 hover:text-on-surface active:scale-90"
+                    title="Sebelumnya"
+                  >
+                    <span className="material-symbols-outlined text-xl">chevron_left</span>
+                  </button>
+                  <p className="text-on-surface-variant font-medium min-w-[140px] text-center select-none">
+                    {viewType === 'monthly' 
+                      ? format(currentDate, 'MMMM yyyy', { locale: id })
+                      : `${format(startOfWeek(currentDate, { weekStartsOn: 0 }), 'd MMM')} - ${format(endOfWeek(currentDate, { weekStartsOn: 0 }), 'd MMM yyyy', { locale: id })}`
+                    }
+                  </p>
+                  <button 
+                    onClick={handleNextDate}
+                    className="p-1 hover:bg-stone-100 rounded-full transition-colors flex items-center justify-center text-stone-500 hover:text-on-surface active:scale-90"
+                    title="Berikutnya"
+                  >
+                    <span className="material-symbols-outlined text-xl">chevron_right</span>
+                  </button>
+                </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="bg-surface-container-low p-1.5 rounded-xl flex border border-stone-100 shadow-sm">
-                  <button className="px-6 py-2 bg-white shadow-sm text-xs font-black uppercase tracking-widest rounded-lg text-primary">Bulanan</button>
-                  <button className="px-6 py-2 text-xs font-black uppercase tracking-widest text-stone-400 hover:text-on-surface transition-colors">Mingguan</button>
+                  <button 
+                    onClick={() => setViewType('monthly')}
+                    className={clsx(
+                      "px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all",
+                      viewType === 'monthly' 
+                        ? "bg-white shadow-sm text-primary" 
+                        : "text-stone-400 hover:text-on-surface"
+                    )}
+                  >
+                    Bulanan
+                  </button>
+                  <button 
+                    onClick={() => setViewType('weekly')}
+                    className={clsx(
+                      "px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all",
+                      viewType === 'weekly' 
+                        ? "bg-white shadow-sm text-primary" 
+                        : "text-stone-400 hover:text-on-surface"
+                    )}
+                  >
+                    Mingguan
+                  </button>
                 </div>
                 <button 
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, date: format(selectedDate, 'yyyy-MM-dd') }))
+                    setIsModalOpen(true)
+                  }}
                   className="bg-primary text-on-primary px-8 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:opacity-90 shadow-lg shadow-primary/20 transition-all active:scale-95"
                 >
                   <span className="material-symbols-outlined text-[20px]">add</span>
@@ -130,17 +243,21 @@ export default function PharmacistSchedule() {
               {/* Grid Days */}
               <div className="grid grid-cols-7 gap-px bg-stone-100 rounded-xl overflow-hidden border border-stone-100">
                 {calendarDays.map((day, idx) => {
-                  const isCurrentMonth = isSameMonth(day, today)
+                  const isCurrentMonth = isSameMonth(day, currentDate)
                   const isTodayDate = isSameDay(day, today)
+                  const isSelectedDate = isSameDay(day, selectedDate)
                   const daySchedules = getSchedulesForDay(day)
                   
                   return (
                     <div 
                       key={idx} 
+                      onClick={() => setSelectedDate(day)}
                       className={clsx(
-                        "h-36 p-4 flex flex-col gap-2 transition-all cursor-pointer relative group",
+                        viewType === 'weekly' ? "h-64" : "h-36",
+                        "p-4 flex flex-col gap-2 transition-all cursor-pointer relative group",
                         isCurrentMonth ? "bg-white hover:bg-surface-container-low" : "bg-stone-50/50 text-stone-300",
-                        isTodayDate && "ring-2 ring-primary ring-inset z-10"
+                        isTodayDate && "ring-2 ring-primary ring-inset z-10",
+                        isSelectedDate && !isTodayDate && "ring-2 ring-stone-300 ring-inset z-10 bg-stone-50/40"
                       )}
                     >
                       <span className={clsx(
@@ -152,7 +269,7 @@ export default function PharmacistSchedule() {
                       {isTodayDate && <span className="text-[9px] font-black text-primary uppercase tracking-widest">Today</span>}
                       
                       <div className="flex flex-col gap-1 mt-1">
-                        {daySchedules.slice(0, 2).map((s, i) => (
+                        {daySchedules.slice(0, viewType === 'weekly' ? 5 : 2).map((s, i) => (
                           <div 
                             key={i} 
                             className={clsx(
@@ -165,8 +282,10 @@ export default function PharmacistSchedule() {
                             {s.patientName.split(' ')[0]}
                           </div>
                         ))}
-                        {daySchedules.length > 2 && (
-                          <div className="text-[9px] font-black text-stone-400 pl-2">+{daySchedules.length - 2} lagi</div>
+                        {daySchedules.length > (viewType === 'weekly' ? 5 : 2) && (
+                          <div className="text-[9px] font-black text-stone-400 pl-2">
+                            +{daySchedules.length - (viewType === 'weekly' ? 5 : 2)} lagi
+                          </div>
                         )}
                       </div>
                     </div>
@@ -207,7 +326,6 @@ export default function PharmacistSchedule() {
               </div>
               <div className="bg-surface-container-high/40 p-8 rounded-2xl border border-stone-100 shadow-sm">
                 <p className="text-stone-500 text-[10px] font-black uppercase tracking-[0.2em]">Kapasitas Klinik</p>
-                {/* M-04: Dinamis berdasarkan todaySchedules (asumsi max 10/hari) */}
                 <h4 className="text-5xl font-black text-on-surface mt-3 headline-font tracking-tight">
                   {Math.min(100, Math.round((todaySchedules.length / 10) * 100))}%
                 </h4>
@@ -224,9 +342,11 @@ export default function PharmacistSchedule() {
           {/* RIGHT COLUMN: TIMELINE */}
           <div className="col-span-12 xl:col-span-4 flex flex-col space-y-8">
             <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-bold headline-font text-on-surface tracking-tight">Timeline Hari Ini</h3>
+              <h3 className="text-2xl font-bold headline-font text-on-surface tracking-tight">
+                {isSelectedToday ? 'Timeline Hari Ini' : 'Timeline Jadwal'}
+              </h3>
               <span className="text-[10px] font-black text-primary bg-primary-container/40 px-4 py-1.5 rounded-full uppercase tracking-widest">
-                {format(today, 'd MMM yyyy', { locale: id })}
+                {format(selectedDate, 'd MMM yyyy', { locale: id })}
               </span>
             </div>
 
@@ -240,14 +360,14 @@ export default function PharmacistSchedule() {
                 </div>
               ) : (
                 <div className="space-y-10 relative">
-                  {todaySchedules.length > 0 ? todaySchedules.map((s, idx) => (
+                  {activeDaySchedules.length > 0 ? activeDaySchedules.map((s, idx) => (
                     <div key={s.id} className="relative flex gap-8 group">
                       {/* Node */}
                       <div className={clsx(
                         "z-10 w-9 h-9 rounded-full flex items-center justify-center border-4 border-white shadow-md transition-transform group-hover:scale-110",
-                        idx === 0 ? "bg-primary" : "bg-stone-200"
+                        (isSelectedToday && idx === 0) ? "bg-primary" : "bg-stone-200"
                       )}>
-                        {idx === 0 && <div className="w-2 h-2 rounded-full bg-white animate-ping"></div>}
+                        {(isSelectedToday && idx === 0) && <div className="w-2 h-2 rounded-full bg-white animate-ping"></div>}
                       </div>
                       
                       {/* Content */}
@@ -255,15 +375,15 @@ export default function PharmacistSchedule() {
                         <div className="flex justify-between items-center mb-3">
                           <p className={clsx(
                             "text-[10px] font-black uppercase tracking-widest",
-                            idx === 0 ? "text-primary" : "text-stone-400"
+                            (isSelectedToday && idx === 0) ? "text-primary" : "text-stone-400"
                           )}>
-                            {idx === 0 ? 'Sedang Berlangsung' : 'Mendatang'}
+                            {(isSelectedToday && idx === 0) ? 'Sedang Berlangsung' : 'Terjadwal'}
                           </p>
                           <span className="text-xs font-black text-on-surface">{format(new Date(s.scheduleDate), 'HH:mm')}</span>
                         </div>
                         <div className={clsx(
                           "p-5 rounded-2xl border transition-all duration-300",
-                          idx === 0 
+                          (isSelectedToday && idx === 0) 
                             ? "bg-primary-container/10 border-primary-container/40 shadow-sm" 
                             : "bg-surface-container-low/30 border-transparent hover:border-stone-200"
                         )}>
@@ -278,7 +398,8 @@ export default function PharmacistSchedule() {
                               </span>
                             </div>
                             {(() => {
-                              const isWAConfigured = !!import.meta.env.VITE_FONNTE_TOKEN
+                              // M-04 Fix: Gunakan flag terpisah VITE_WA_ENABLED, bukan token langsung
+                              const isWAConfigured = import.meta.env.VITE_WA_ENABLED === 'true'
                               return (
                                 <button 
                                   onClick={() => handleSendReminder(s)}
@@ -305,8 +426,8 @@ export default function PharmacistSchedule() {
                     </div>
                   )}
 
-                  {/* Upcoming indicators if today is empty */}
-                  {todaySchedules.length === 0 && upcomingSchedules.map((s) => (
+                  {/* Upcoming indicators if selected day is empty */}
+                  {activeDaySchedules.length === 0 && upcomingSchedules.map((s) => (
                     <div key={s.id} className="relative flex gap-8 group opacity-60">
                         <div className="z-10 w-9 h-9 rounded-full bg-stone-100 border-4 border-white shadow-sm"></div>
                         <div className="flex-grow py-2">

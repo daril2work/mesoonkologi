@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { clsx } from 'clsx'
 import { ROUTES } from '@configs/app.config'
 import { useNotifications } from '../hooks/useNotifications'
+import { supabase } from '@lib/supabase'
 
 interface PharmacistLayoutProps {
   children: React.ReactNode
@@ -18,7 +19,29 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
   const currentSearch = searchParams.get('search') ?? ''
   
   // Destructure all needed counts from the hook
-  const { unreadCount, reportsCount, messagesCount } = useNotifications()
+  const { unreadCount, reportsCount, messagesCount, queueIds } = useNotifications()
+
+  const handleMarkReportsRead = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const readReportIds = JSON.parse(localStorage.getItem('read_pharma_reports') || '[]')
+    queueIds.forEach((id: string) => {
+      if (!readReportIds.includes(id)) {
+        readReportIds.push(id)
+      }
+    })
+    localStorage.setItem('read_pharma_reports', JSON.stringify(readReportIds))
+    window.location.reload()
+  }
+
+  const handleMarkMessagesRead = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!user) return
+    await supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .eq('receiver_id', user.id)
+      .eq('is_read', false)
+  }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -142,15 +165,33 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
                         ) : (
                           <div className="divide-y divide-stone-50">
                             {reportsCount > 0 && (
-                              <div className="px-6 py-4 hover:bg-stone-50 transition-colors cursor-pointer" onClick={() => { navigate(ROUTES.PHARMA_DASHBOARD); setIsNotifOpen(false); }}>
-                                <p className="text-xs font-bold text-on-surface">Laporan Baru</p>
-                                <p className="text-[10px] text-stone-500 mt-1">Ada {reportsCount} laporan yang perlu ditinjau.</p>
+                              <div className="px-6 py-4 hover:bg-stone-50 transition-colors cursor-pointer flex justify-between items-center gap-3" onClick={() => { navigate(ROUTES.PHARMA_DASHBOARD); setIsNotifOpen(false); }}>
+                                <div>
+                                  <p className="text-xs font-bold text-on-surface">Laporan Baru</p>
+                                  <p className="text-[10px] text-stone-500 mt-1">Ada {reportsCount} laporan yang perlu ditinjau.</p>
+                                </div>
+                                <button
+                                  onClick={handleMarkReportsRead}
+                                  className="p-1.5 hover:bg-stone-200 rounded-full text-stone-400 hover:text-teal-600 transition-all shrink-0 self-center"
+                                  title="Tandai dibaca"
+                                >
+                                  <span className="material-symbols-outlined text-lg leading-none">check_circle</span>
+                                </button>
                               </div>
                             )}
                             {messagesCount > 0 && (
-                              <div className="px-6 py-4 hover:bg-stone-50 transition-colors cursor-pointer" onClick={() => { navigate(ROUTES.PHARMA_CHAT); setIsNotifOpen(false); }}>
-                                <p className="text-xs font-bold text-teal-600">Pesan Konsultasi</p>
-                                <p className="text-[10px] text-stone-500 mt-1">Ada {messagesCount} pesan baru dari pasien.</p>
+                              <div className="px-6 py-4 hover:bg-stone-50 transition-colors cursor-pointer flex justify-between items-center gap-3" onClick={() => { navigate(ROUTES.PHARMA_CHAT); setIsNotifOpen(false); }}>
+                                <div>
+                                  <p className="text-xs font-bold text-teal-600">Pesan Konsultasi</p>
+                                  <p className="text-[10px] text-stone-500 mt-1">Ada {messagesCount} pesan baru dari pasien.</p>
+                                </div>
+                                <button
+                                  onClick={handleMarkMessagesRead}
+                                  className="p-1.5 hover:bg-stone-200 rounded-full text-stone-400 hover:text-teal-600 transition-all shrink-0 self-center"
+                                  title="Tandai dibaca"
+                                >
+                                  <span className="material-symbols-outlined text-lg leading-none">check_circle</span>
+                                </button>
                               </div>
                             )}
                           </div>

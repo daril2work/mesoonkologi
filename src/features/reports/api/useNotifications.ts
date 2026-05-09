@@ -98,12 +98,76 @@ export function useNotifications() {
         })
       }
 
+      // Filter out locally read notifications
+      const readIds: string[] = JSON.parse(localStorage.getItem('read_notifications') || '[]')
+      const unreadNotifications = notifications.filter(n => !readIds.includes(n.id))
+
       // Sort by date newest first
-      return notifications.sort((a, b) => 
+      return unreadNotifications.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
     },
     enabled: !!user,
     refetchInterval: 30000, // Refetch every 30 seconds for "real-time" feel
+  })
+}
+
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+export function useMarkNotificationRead() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async ({ id, type }: { id: string; type: 'evaluation' | 'chat' | 'schedule' }) => {
+      // 1. Save to localStorage to filter out locally
+      const readIds = JSON.parse(localStorage.getItem('read_notifications') || '[]')
+      if (!readIds.includes(id)) {
+        readIds.push(id)
+        localStorage.setItem('read_notifications', JSON.stringify(readIds))
+      }
+
+      // 2. If it's a chat message, also mark as read in Supabase
+      if (type === 'chat') {
+        await supabase
+          .from('chat_messages')
+          .update({ is_read: true })
+          .eq('id', id)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] })
+    }
+  })
+}
+
+export function useMarkAllNotificationsRead() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (notificationsList: NotificationItem[]) => {
+      const readIds = JSON.parse(localStorage.getItem('read_notifications') || '[]')
+      
+      // Mark all locally
+      notificationsList.forEach(n => {
+        if (!readIds.includes(n.id)) {
+          readIds.push(n.id)
+        }
+      })
+      localStorage.setItem('read_notifications', JSON.stringify(readIds))
+
+      // Mark all chats in Supabase
+      const chatIds = notificationsList.filter(n => n.type === 'chat').map(n => n.id)
+      if (chatIds.length > 0) {
+        await supabase
+          .from('chat_messages')
+          .update({ is_read: true })
+          .in('id', chatIds)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] })
+    }
   })
 }

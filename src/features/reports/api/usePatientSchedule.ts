@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import type { PatientSchedule } from '../types'
 import { useAuthStore } from '@features/auth/store'
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
 
 export function usePatientSchedule() {
   const { user } = useAuthStore()
@@ -37,14 +38,17 @@ export function usePatientSchedule() {
   })
 }
 
-export function usePharmacistSchedules() {
+export function usePharmacistSchedules(referenceDate?: Date) {
+  const refDate = referenceDate || new Date()
   return useQuery({
-    queryKey: ['pharmacistSchedules'],
+    queryKey: ['pharmacistSchedules', refDate.getFullYear(), refDate.getMonth()],
     queryFn: async () => {
-      // M-03: Filter by current month to optimize performance
-      const now = new Date()
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+      // Ambil dari awal minggu pertama bulan ini hingga akhir minggu terakhir bulan ini
+      // untuk mencakup semua hari yang terlihat di kalender bulanan/mingguan secara akurat.
+      const monthStart = startOfMonth(refDate)
+      const monthEnd = endOfMonth(refDate)
+      const firstDay = startOfWeek(monthStart, { weekStartsOn: 0 })
+      const lastDay = endOfWeek(monthEnd, { weekStartsOn: 0 })
 
       const { data, error } = await supabase
         .from('patient_schedules')

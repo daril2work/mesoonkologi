@@ -17,6 +17,7 @@ interface SupabaseSymptomReport {
 interface SupabaseProfileRow {
   id: string
   full_name: string | null
+  phone_number?: string | null
   current_cycle: number | null
   cancer_site: string | null
   symptom_reports: SupabaseSymptomReport[] | null
@@ -40,6 +41,7 @@ export function mapPatientDirectoryRow(row: SupabaseProfileRow): PatientDirector
   return {
     id: row.id,
     fullName: row.full_name ?? 'Tanpa Nama',
+    phoneNumber: row.phone_number ?? '',
     currentCycle: row.current_cycle ?? 1,
     lastReportDate: lastReport?.created_at ?? null,
     overallStatus: status,

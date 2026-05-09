@@ -20,6 +20,7 @@ export function usePatientDirectory() {
         .select(`
           id, 
           full_name, 
+          phone_number,
           current_cycle, 
           cancer_site,
           symptom_reports (

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Bell, LogOut, MessageSquare, CheckCircle, Calendar, X } from 'lucide-react'
 import { useAuthStore } from '@features/auth/store'
-import { useNotifications } from '../api/useNotifications'
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '../api/useNotifications'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { formatDistanceToNow } from 'date-fns'
@@ -13,6 +13,8 @@ export default function PatientTopNav() {
   const navigate = useNavigate()
   const { data: notifications = [] } = useNotifications()
   const [showNotifications, setShowNotifications] = useState(false)
+  const markAsRead = useMarkNotificationRead()
+  const markAllAsRead = useMarkAllNotificationsRead()
 
   const unreadCount = notifications.length
 
@@ -68,7 +70,17 @@ export default function PatientTopNav() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <header className="px-6 py-5 border-b border-stone-50 flex justify-between items-center bg-white sticky top-0 z-10">
-                  <h3 className="font-headline font-extrabold text-on-surface">Pemberitahuan</h3>
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="font-headline font-extrabold text-on-surface">Pemberitahuan</h3>
+                    {notifications.length > 0 && (
+                      <button 
+                        onClick={() => markAllAsRead.mutate(notifications)}
+                        className="text-[10px] font-black text-[#1a7a7a] hover:text-[#156363] uppercase tracking-wider transition-colors ml-2"
+                      >
+                        Tandai semua dibaca
+                      </button>
+                    )}
+                  </div>
                   <button onClick={() => setShowNotifications(false)} className="p-2 bg-stone-50 rounded-full text-stone-400">
                     <X size={18} />
                   </button>
@@ -90,25 +102,37 @@ export default function PatientTopNav() {
                           if (notif.link) navigate(notif.link)
                           setShowNotifications(false)
                         }}
-                        className="p-4 rounded-2xl hover:bg-surface-container-low transition-all cursor-pointer flex gap-4 border border-transparent hover:border-surface-container"
+                        className="p-4 rounded-2xl hover:bg-surface-container-low transition-all cursor-pointer flex justify-between items-start gap-4 border border-transparent hover:border-surface-container group/item"
                       >
-                        <div className={clsx(
-                          "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                          notif.type === 'chat' ? "bg-primary-container/30 text-primary" :
-                          notif.type === 'evaluation' ? "bg-tertiary-container/30 text-tertiary" :
-                          "bg-amber-100/50 text-amber-600"
-                        )}>
-                          {notif.type === 'chat' && <MessageSquare size={20} />}
-                          {notif.type === 'evaluation' && <CheckCircle size={20} />}
-                          {notif.type === 'schedule' && <Calendar size={20} />}
+                        <div className="flex gap-4 overflow-hidden">
+                          <div className={clsx(
+                            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+                            notif.type === 'chat' ? "bg-primary-container/30 text-primary" :
+                            notif.type === 'evaluation' ? "bg-tertiary-container/30 text-tertiary" :
+                            "bg-amber-100/50 text-amber-600"
+                          )}>
+                            {notif.type === 'chat' && <MessageSquare size={20} />}
+                            {notif.type === 'evaluation' && <CheckCircle size={20} />}
+                            {notif.type === 'schedule' && <Calendar size={20} />}
+                          </div>
+                          <div className="space-y-1 overflow-hidden">
+                            <h4 className="font-headline text-sm font-bold text-on-surface truncate">{notif.title}</h4>
+                            <p className="font-body text-xs text-on-surface-variant leading-relaxed line-clamp-2">{notif.description}</p>
+                            <p className="text-[10px] text-stone-400 font-medium">
+                              {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: id })}
+                            </p>
+                          </div>
                         </div>
-                        <div className="space-y-1 overflow-hidden">
-                          <h4 className="font-headline text-sm font-bold text-on-surface truncate">{notif.title}</h4>
-                          <p className="font-body text-xs text-on-surface-variant leading-relaxed line-clamp-2">{notif.description}</p>
-                          <p className="text-[10px] text-stone-400 font-medium">
-                            {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: id })}
-                          </p>
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation() // Cegah navigasi tautan
+                            markAsRead.mutate({ id: notif.id, type: notif.type })
+                          }}
+                          aria-label="Tandai dibaca"
+                          className="p-2 hover:bg-stone-100 rounded-full text-stone-400 hover:text-primary transition-all shrink-0 self-center"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
                       </div>
                     ))
                   )}

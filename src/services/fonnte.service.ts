@@ -4,16 +4,17 @@ export interface WAOptions {
   target: string    // Phone number (e.g., 628123456789)
   message: string   // Content of the message
   delay?: number    // Delay in seconds
+  schedule?: number // Unix timestamp in seconds for scheduled sending
 }
 
 export const fonnteService = {
   /**
    * Send a WhatsApp message via Supabase Edge Function
    */
-  async sendMessage({ target, message }: WAOptions) {
+  async sendMessage({ target, message, schedule }: WAOptions) {
     try {
       const { data, error } = await supabase.functions.invoke('send-whatsapp', {
-        body: { target, message }
+        body: { target, message, schedule }
       })
 
       if (error) throw error

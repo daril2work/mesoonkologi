@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { logger } from '@utils/logger'
+import { fonnteService } from '@/services/fonnte.service'
 
 export function useReportEscalation() {
   const queryClient = useQueryClient()
@@ -32,6 +33,26 @@ export function useReportEscalation() {
       if (patientId) {
         queryClient.invalidateQueries({ queryKey: ['patientDetail', patientId] })
       }
+
+      // Alert Dokter Jaga jika laporan berhasil dieskalasi
+      supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'doctor_wa')
+        .single()
+        .then(async ({ data: settingData }) => {
+          const recipient = settingData?.value
+          if (recipient) {
+            await fonnteService.sendMessage({
+              target: recipient,
+              message: 'CITO! Ada laporan MESO yang perlu anda tindak lanjuti segera!'
+            })
+            logger.info('[Escalation WA Alert] Alert successfully sent to doctor', { recipient })
+          }
+        })
+        .catch((err) => {
+          logger.error('[Escalation WA Alert Error]', err)
+        })
     },
   })
 }

@@ -101,6 +101,7 @@ export interface EducationMaterial {
 export interface PatientDirectoryItem {
   id: string
   fullName: string
+  phoneNumber?: string
   currentCycle: number
   lastReportDate: string | null
   overallStatus: 'Stabil' | 'Observasi' | 'Butuh Tindakan'

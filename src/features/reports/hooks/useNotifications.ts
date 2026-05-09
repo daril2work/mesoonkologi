@@ -68,12 +68,18 @@ export function useNotifications() {
     }
   }, [user, refetchQueue])
 
+  // Filter out reports already marked read by the pharmacist
+  const readReportIds: string[] = JSON.parse(localStorage.getItem('read_pharma_reports') || '[]')
+  const activeReports = queue?.filter(r => !readReportIds.includes(r.id)) || []
+  const activeReportsCount = activeReports.length
+
   // Total count = Queue items + Unread messages
-  const totalUnread = (queue?.length || 0) + unreadMessagesCount
+  const totalUnread = activeReportsCount + unreadMessagesCount
 
   return { 
     unreadCount: totalUnread,
-    reportsCount: queue?.length || 0,
-    messagesCount: unreadMessagesCount
+    reportsCount: activeReportsCount,
+    messagesCount: unreadMessagesCount,
+    queueIds: queue?.map(r => r.id) || []
   }
 }
