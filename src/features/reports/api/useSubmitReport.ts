@@ -54,12 +54,16 @@ export function useSubmitReport() {
 
       // Alert Apoteker Jaga jika terjadi Sentinel Alert (MESO Mayor)
       if (data?.is_sentinel_alert) {
-        supabase
-          .from('system_settings')
-          .select('value')
-          .eq('key', 'pharmacist_wa')
-          .single()
-          .then(async ({ data: settingData }) => {
+        const sendAlert = async () => {
+          try {
+            const { data: settingData, error: settingError } = await supabase
+              .from('system_settings')
+              .select('value')
+              .eq('key', 'pharmacist_wa')
+              .single()
+
+            if (settingError) throw settingError
+
             const recipient = settingData?.value
             if (recipient) {
               await fonnteService.sendMessage({
@@ -68,10 +72,11 @@ export function useSubmitReport() {
               })
               logger.info('[SubmitReport WA Alert] Alert successfully sent to pharmacist', { recipient })
             }
-          })
-          .catch((err) => {
-            logger.error('[SubmitReport WA Alert Error]', err)
-          })
+          } catch (err: unknown) {
+            logger.error('[SubmitReport WA Alert Error]', err instanceof Error ? err.message : err)
+          }
+        }
+        sendAlert()
       }
     },
     onError: (error) => {

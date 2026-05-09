@@ -35,12 +35,16 @@ export function useReportEscalation() {
       }
 
       // Alert Dokter Jaga jika laporan berhasil dieskalasi
-      supabase
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'doctor_wa')
-        .single()
-        .then(async ({ data: settingData }) => {
+      const sendAlert = async () => {
+        try {
+          const { data: settingData, error: settingError } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('key', 'doctor_wa')
+            .single()
+
+          if (settingError) throw settingError
+
           const recipient = settingData?.value
           if (recipient) {
             await fonnteService.sendMessage({
@@ -49,10 +53,11 @@ export function useReportEscalation() {
             })
             logger.info('[Escalation WA Alert] Alert successfully sent to doctor', { recipient })
           }
-        })
-        .catch((err) => {
-          logger.error('[Escalation WA Alert Error]', err)
-        })
+        } catch (err: unknown) {
+          logger.error('[Escalation WA Alert Error]', err instanceof Error ? err.message : err)
+        }
+      }
+      sendAlert()
     },
   })
 }
