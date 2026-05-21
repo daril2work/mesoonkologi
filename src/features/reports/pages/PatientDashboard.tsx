@@ -146,7 +146,7 @@ export default function PatientDashboard() {
         </section>
 
         {/* Ruang Relaksasi (Premium Gradient) */}
-        <section className="bg-gradient-to-br from-primary to-primary-fixed-variant p-6 rounded-[32px] text-white shadow-lg shadow-primary/20">
+        <section className="bg-linear-to-br from-primary to-clinical-teal p-6 rounded-[32px] text-white shadow-lg shadow-primary/20">
           <h2 className="font-headline text-xl font-bold mb-4">
             Ruang Relaksasi
           </h2>

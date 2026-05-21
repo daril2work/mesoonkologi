@@ -10,7 +10,7 @@ import { ROUTES } from '@configs/app.config'
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
+  const [whatsApp, setWhatsApp] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -18,8 +18,8 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!fullName || !email || !password) {
-      toast.error('Mohon lengkapi semua data diri Anda')
+    if (!fullName || !whatsApp || !password) {
+      toast.error('Mohon lengkapi data Nama, Nomor WhatsApp, dan Kata Sandi Anda')
       return
     }
     
@@ -30,14 +30,20 @@ export default function RegisterPage() {
 
     setIsLoading(true)
     try {
+      // Clean phone number from non-digits
+      const cleanPhone = whatsApp.replace(/\D/g, '')
+      const formattedEmail = `${cleanPhone}@meso.id`
+
       // Create user and inject raw_user_meta_data for the Postgres Trigger
       const { error } = await supabase.auth.signUp({
-        email,
+        email: formattedEmail,
         password,
         options: {
           data: {
             full_name: fullName,
             role: 'patient',
+            phone_number: cleanPhone,
+            hospital_id: null,
           }
         }
       })
@@ -125,18 +131,19 @@ export default function RegisterPage() {
             required
           />
 
-          {/* Email */}
+          {/* WhatsApp */}
           <FormInput
-            label="Alamat Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="contoh@email.com"
-            autoComplete="email"
-            autoCapitalize="none"
-            inputMode="email"
+            label="Nomor WhatsApp"
+            type="tel"
+            value={whatsApp}
+            onChange={(e) => setWhatsApp(e.target.value)}
+            placeholder="Contoh: 08123456789"
+            autoComplete="tel"
+            inputMode="tel"
             required
           />
+
+
 
           {/* Password */}
           <div>

@@ -17,6 +17,9 @@ export type SymptomKey =
   | 'appetiteLoss'
   | 'fever'
   | 'dyspnea'
+  | 'constipation'
+  | 'alopecia'
+  | 'insomnia'
 
 export interface ReportItemDefinition {
   key: string
@@ -36,12 +39,14 @@ export const REPORT_SCHEMA: ReportItemDefinition[] = [
   { key: 'nausea', label: 'Mual', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
   { key: 'vomiting', label: 'Muntah', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
   { key: 'diarrhea', label: 'Diare', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
-  { key: 'fatigue', label: 'Kelelahan', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
-  { key: 'pain', label: 'Nyeri', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
+  { key: 'constipation', label: 'Sembelit', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
   { key: 'mucositis', label: 'Sariawan', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
-  { key: 'neuropathy', label: 'Kesemutan/Baal', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
+  { key: 'alopecia', label: 'Rambut Rontok', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
+  { key: 'fatigue', label: 'Lelah', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
+  { key: 'neuropathy', label: 'Nyeri Kesemutan', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
+  { key: 'insomnia', label: 'Gangguan Tidur', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
+  { key: 'appetiteLoss', label: 'Nafsu Makan Turun', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
   { key: 'skinReaction', label: 'Reaksi Kulit', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
-  { key: 'appetiteLoss', label: 'Nafsu Makan', domain: 'CLINICAL', isClinical: true, isSentinelEligible: false },
   { key: 'fever', label: 'Demam', domain: 'CLINICAL', isClinical: true, isSentinelEligible: true },
   { key: 'dyspnea', label: 'Sesak Napas', domain: 'CLINICAL', isClinical: true, isSentinelEligible: true },
 

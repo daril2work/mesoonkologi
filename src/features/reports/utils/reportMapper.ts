@@ -70,7 +70,7 @@ export function mapSymptomDetail(symptoms: Record<string, number>) {
       status: getSymptomStatus(symptoms[UI_SYMPTOM_KEYS.NAUSEA] || 0) 
     },
     { 
-      label: 'Tingkat Nyeri', 
+      label: 'Nyeri Kesemutan', 
       value: symptoms[UI_SYMPTOM_KEYS.PAIN] || 0, 
       status: getSymptomStatus(symptoms[UI_SYMPTOM_KEYS.PAIN] || 0) 
     },

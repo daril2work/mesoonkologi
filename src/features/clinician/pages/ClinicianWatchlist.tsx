@@ -231,7 +231,7 @@ export default function ClinicianWatchlist() {
             <p className="text-xs md:text-sm text-stone-500 leading-relaxed font-medium">Setiap laporan berstatus <span className="text-[#b90c55] font-black uppercase">Major</span> harus ditinjau dalam waktu maksimal 30 menit. Pastikan ketersediaan bed isolasi atau unit gawat darurat jika diperlukan tindakan segera.</p>
           </div>
           <div className="md:col-span-12 lg:col-span-8 bg-[#004d43] p-6 md:p-10 rounded-[32px] md:rounded-[40px] shadow-2xl relative overflow-hidden flex items-center">
-             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+             <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent pointer-events-none"></div>
              <div className="relative z-10 w-full">
                <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.25em] mb-6 md:mb-8">Ringkasan Harian Bangsal</h4>
                <div className="flex flex-wrap justify-between items-center gap-6 md:pr-10">

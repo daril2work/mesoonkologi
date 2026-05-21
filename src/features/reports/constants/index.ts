@@ -5,7 +5,7 @@
 
 export const SYMPTOM_KEYS = {
   NAUSEA: 'nausea',
-  PAIN: 'pain',
+  PAIN: 'neuropathy',
   FATIGUE: 'fatigue',
   APPETITE: 'appetiteLoss',
 } as const

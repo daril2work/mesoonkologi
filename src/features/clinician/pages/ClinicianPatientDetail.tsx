@@ -60,7 +60,7 @@ export default function ClinicianPatientDetail() {
       <div className="space-y-8 md:space-y-12 pb-32 max-w-5xl mx-auto">
 
         {/* HERO CARD - TEAL GRADIENT */}
-        <section className="relative overflow-hidden rounded-[40px] p-8 md:p-12 bg-gradient-to-br from-[#a7f3e0] to-[#c1ffef] shadow-xl shadow-teal-900/5 transition-all">
+        <section className="relative overflow-hidden rounded-[40px] p-8 md:p-12 bg-linear-to-br from-[#a7f3e0] to-[#c1ffef] shadow-xl shadow-teal-900/5 transition-all">
           <div className="relative z-10 space-y-8">
             <div className="flex justify-between items-start">
                <div className="space-y-1">
@@ -216,7 +216,7 @@ export default function ClinicianPatientDetail() {
              <div className="flex flex-col gap-4 pt-6">
                 <button 
                   onClick={() => handleIntervention(true)}
-                  className="w-full bg-gradient-to-r from-[#006a60] to-[#004d43] text-white h-16 md:h-20 rounded-3xl font-black text-xs md:text-sm uppercase tracking-[0.2em] shadow-xl shadow-teal-900/20 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-4 px-10"
+                  className="w-full bg-linear-to-r from-[#006a60] to-[#004d43] text-white h-16 md:h-20 rounded-3xl font-black text-xs md:text-sm uppercase tracking-[0.2em] shadow-xl shadow-teal-900/20 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-4 px-10"
                 >
                   <span className="material-symbols-outlined text-xl md:text-2xl">task_alt</span>
                   SELESAIKAN & DEESKALASI

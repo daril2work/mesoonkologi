@@ -46,6 +46,7 @@ export interface PatientDetailData {
     spo2?: number
   }
   qolScore?: number
+  isQolActive?: boolean
 }
 
 export function usePatientDetail(patientId?: string, reportId?: string) {
@@ -57,7 +58,7 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
       // 1. Fetch Profile (Limit columns for security)
       const { data: profile, error: pError } = await supabase
         .from('profiles')
-        .select('id, full_name, cancer_site, current_cycle, age, weight_kg, height_cm')
+        .select('id, full_name, cancer_site, current_cycle, age, weight_kg, height_cm, is_qol_active')
         .eq('id', patientId)
         .single()
 
@@ -106,6 +107,7 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
         diagnosis: profile.cancer_site || 'Karsinoma Mammae',
         cycleInfo: `Siklus ${profile.current_cycle} / 8`,
         currentCycle: profile.current_cycle || 1,
+        isQolActive: profile.is_qol_active ?? false,
         latestSymptoms: mapSymptomDetail(symptoms),
         latestDietary: mapDietaryDetail(symptoms),
         trends: [...reports].reverse().map(r => ({

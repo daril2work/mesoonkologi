@@ -1,10 +1,11 @@
 // ============================================================
 // Auth Feature — Forgot Password Page
 // Design: "Full Teal Hero" (Lumina Healing Design System)
+// Description: Automated WhatsApp OTP reset & Email recovery fallback
 // ============================================================
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { KeyRound, Mail, CheckCircle2 } from 'lucide-react'
+import { KeyRound, Mail, CheckCircle2, Smartphone, ShieldCheck, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { FormInput } from '@components/ui/FormInput'
 import { Button } from '@components/ui/Button'
@@ -12,34 +13,160 @@ import { supabase } from '@lib/supabase'
 import { ROUTES } from '@configs/app.config'
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('')
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1) // 1: Input search, 2: WA OTP, 3: Reset Success, 4: Email Sent Fallback
+  const [searchVal, setSearchVal] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [userData, setUserData] = useState<any>(null)
 
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Mask email utility for premium privacy UX
+  const maskEmail = (emailStr: string) => {
+    if (!emailStr) return ''
+    const parts = emailStr.split('@')
+    if (parts.length !== 2) return emailStr
+    const name = parts[0]
+    const domain = parts[1]
+    if (name.length <= 2) {
+      return `${name[0]}***@${domain}`
+    }
+    return `${name[0]}${'*'.repeat(name.length - 2)}${name[name.length - 1]}@${domain}`
+  }
+
+  // Step 1: Submit search identifier (WhatsApp, Patient ID, or Email)
+  const handleCheckIdentifier = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) {
-      toast.error('Mohon isi alamat email Anda')
+    if (!searchVal.trim()) {
+      toast.error('Mohon isi nomor WhatsApp, ID Pasien, atau email Anda')
       return
     }
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}${ROUTES.RESET_PASSWORD}`,
+      // Query the user profiles + auth using RPC
+      const { data: userProfile, error: rpcError } = await supabase.rpc('get_user_by_identifier', {
+        search_val: searchVal.trim()
       })
 
-      if (error) {
-        toast.error('Gagal mengirim email pemulihan: ' + error.message)
+      if (rpcError) throw rpcError
+
+      if (!userProfile) {
+        toast.error('Pengguna tidak ditemukan. Silakan periksa kembali input Anda.')
+        setIsLoading(false)
         return
       }
 
-      toast.success('Email pemulihan kata sandi berhasil dikirim!')
-      setIsSubmitted(true)
+      setUserData(userProfile)
+
+      // Check if user has WhatsApp number registered
+      if (userProfile.phone_number && userProfile.phone_number.trim() !== '') {
+        // WhatsApp Recovery flow
+        toast.loading('Mengirimkan kode OTP ke WhatsApp Anda...', { id: 'otp-send' })
+        const { data, error: funcError } = await supabase.functions.invoke('request-reset-otp', {
+          body: { phone_number: userProfile.phone_number }
+        })
+
+        if (funcError || (data && data.error)) {
+          toast.error('Gagal mengirim OTP: ' + (funcError?.message || data?.error), { id: 'otp-send' })
+          return
+        }
+
+        toast.success('Kode OTP berhasil dikirim ke WhatsApp Anda!', { id: 'otp-send' })
+        setStep(2)
+      } else {
+        // Fallback email flow (for legacy users)
+        const userEmail = userProfile.email
+        if (!userEmail || userEmail.endsWith('@meso.id')) {
+          // If the email is virtual and they have no phone number, they are trapped. (Should not happen)
+          toast.error('Akun Anda tidak memiliki nomor WhatsApp maupun email aktif. Hubungi pusat bantuan klinis.', { id: 'otp-send' })
+          return
+        }
+
+        toast.loading('Mengirim tautan pemulihan kata sandi ke email Anda...', { id: 'email-send' })
+        const { error: emailResetError } = await supabase.auth.resetPasswordForEmail(userEmail, {
+          redirectTo: `${window.location.origin}${ROUTES.RESET_PASSWORD}`,
+        })
+
+        if (emailResetError) {
+          toast.error('Gagal mengirim email pemulihan: ' + emailResetError.message, { id: 'email-send' })
+          return
+        }
+
+        toast.success('Tautan pemulihan kata sandi berhasil dikirim!', { id: 'email-send' })
+        setStep(4)
+      }
+
     } catch (err: any) {
-      toast.error('Terjadi kesalahan yang tidak terduga.')
+      toast.error(err.message || 'Terjadi kesalahan tidak terduga.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Step 2: Verify WhatsApp OTP and Reset Password
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!otpCode || !newPassword || !confirmPassword) {
+      toast.error('Mohon lengkapi semua kolom')
+      return
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Kata sandi baru minimal 6 karakter')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Konfirmasi kata sandi tidak cocok')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { data, error: verifyError } = await supabase.functions.invoke('verify-and-reset-otp', {
+        body: {
+          phone_number: userData.phone_number,
+          otp_code: otpCode.trim(),
+          new_password: newPassword
+        }
+      })
+
+      if (verifyError || (data && data.error)) {
+        toast.error('Verifikasi gagal: ' + (verifyError?.message || data?.error))
+        return
+      }
+
+      toast.success('Kata sandi berhasil diperbarui!')
+      setStep(3)
+    } catch (err: any) {
+      toast.error(err.message || 'Terjadi kesalahan tidak terduga.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Resend OTP handler for WhatsApp
+  const handleResendOtp = async () => {
+    if (!userData || !userData.phone_number) return
+    setIsLoading(true)
+    try {
+      toast.loading('Mengirim ulang kode OTP...', { id: 'otp-resend' })
+      const { data, error } = await supabase.functions.invoke('request-reset-otp', {
+        body: { phone_number: userData.phone_number }
+      })
+
+      if (error || (data && data.error)) {
+        toast.error('Gagal mengirim OTP: ' + (error?.message || data?.error), { id: 'otp-resend' })
+        return
+      }
+
+      toast.success('Kode OTP baru telah dikirim ke WhatsApp!', { id: 'otp-resend' })
+    } catch (err: any) {
+      toast.error('Terjadi kesalahan saat mengirim ulang OTP.')
     } finally {
       setIsLoading(false)
     }
@@ -90,10 +217,13 @@ export default function ForgotPasswordPage() {
           {/* Headline */}
           <div style={{ textAlign: 'center' }}>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: '#ffffff', lineHeight: 1.25, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
-              Lupa Kata Sandi?
+              Atur Ulang Kata Sandi
             </h1>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.6, maxWidth: 280 }}>
-              Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.
+              {step === 1 && 'Dapatkan akses kembali ke portal Anda dengan cepat dan aman.'}
+              {step === 2 && 'Masukkan kode OTP WhatsApp dan kata sandi baru Anda.'}
+              {step === 3 && 'Akun Anda telah berhasil dipulihkan.'}
+              {step === 4 && 'Tautan email pemulihan berhasil dikirim.'}
             </p>
           </div>
         </div>
@@ -111,37 +241,31 @@ export default function ForgotPasswordPage() {
           position: 'relative', 
           zIndex: 1 
         }}>
-          {!isSubmitted ? (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, height: '100%' }}>
-              {/* Email */}
+          {/* STEP 1: Search user / Identify */}
+          {step === 1 && (
+            <form onSubmit={handleCheckIdentifier} style={{ display: 'flex', flexDirection: 'column', gap: 20, height: '100%' }}>
               <FormInput
-                label="Alamat Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Masukkan email terdaftar Anda"
-                autoComplete="email"
-                autoCapitalize="none"
-                inputMode="email"
+                label="Nomor WhatsApp / ID Pasien / Email"
+                type="text"
+                value={searchVal}
+                onChange={(e) => setSearchVal(e.target.value)}
+                placeholder="Masukkan salah satu data di atas"
                 required
               />
 
-              {/* Notice */}
-              <div style={{ display: 'flex', gap: 10, background: '#f0f9ff', padding: '12px 16px', borderRadius: 16 }}>
-                <Mail size={18} color="#0284c7" style={{ flexShrink: 0, marginTop: 2 }} />
-                <p style={{ margin: 0, fontSize: 13, color: '#0369a1', lineHeight: 1.5 }}>
-                  Pastikan alamat email yang Anda masukkan aktif dan terdaftar di MESO-app.
+              <div style={{ display: 'flex', gap: 10, background: '#e6f4f1', padding: '12px 16px', borderRadius: 16 }}>
+                <Smartphone size={18} color="#0d9488" style={{ flexShrink: 0, marginTop: 2 }} />
+                <p style={{ margin: 0, fontSize: 13, color: '#0f766e', lineHeight: 1.5 }}>
+                  <strong>Pemulihan Cepat WhatsApp:</strong> Sistem akan mengirim kode OTP langsung ke nomor WA terdaftar untuk verifikasi instan.
                 </p>
               </div>
 
               <div style={{ flex: 1, minHeight: 32 }} />
 
-              {/* Action Button */}
               <Button type="submit" isLoading={isLoading}>
-                Kirim Tautan Pemulihan <span style={{ fontSize: 18 }}>→</span>
+                Lanjutkan Pemulihan <span style={{ fontSize: 18 }}>→</span>
               </Button>
 
-              {/* Back to Login */}
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.LOGIN)}
@@ -161,33 +285,147 @@ export default function ForgotPasswordPage() {
                 Kembali ke Halaman Masuk
               </button>
             </form>
-          ) : (
+          )}
+
+          {/* STEP 2: Verify WhatsApp OTP */}
+          {step === 2 && (
+            <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 16px', borderRadius: 16, display: 'flex', gap: 10 }}>
+                <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#15803d', lineHeight: 1.4 }}>
+                  Kami telah mengirimkan 6-digit OTP ke nomor WhatsApp <strong>{userData?.phone_number}</strong>.
+                </span>
+              </div>
+
+              <FormInput
+                label="Kode OTP (6 Digit)"
+                type="text"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Masukkan 6 angka OTP"
+                required
+                style={{ letterSpacing: '0.25em', fontSize: 18, textAlign: 'center', fontWeight: 'bold' }}
+              />
+
+              <div>
+                <FormInput
+                  label="Kata Sandi Baru"
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimal 6 karakter"
+                  required
+                  style={{ paddingRight: 56 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ position: 'absolute', right: 42, marginTop: -46, background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', color: '#6e7979' }}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+
+              <FormInput
+                label="Konfirmasi Kata Sandi Baru"
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Ulangi kata sandi baru"
+                required
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                <span style={{ fontSize: 13, color: '#6e7979' }}>Tidak menerima kode?</span>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={isLoading}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#0d9488', textDecoration: 'underline', padding: '4px 0' }}
+                >
+                  Kirim Ulang OTP
+                </button>
+              </div>
+
+              <div style={{ flex: 1, minHeight: 16 }} />
+
+              <Button type="submit" isLoading={isLoading}>
+                Perbarui Kata Sandi <span style={{ fontSize: 18 }}>✓</span>
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  fontSize: 14, 
+                  fontWeight: 600, 
+                  color: '#6e7979', 
+                  fontFamily: 'inherit', 
+                  alignSelf: 'center', 
+                  padding: '8px 16px',
+                  minHeight: 36
+                }}
+              >
+                Kembali ke Step 1
+              </button>
+            </form>
+          )}
+
+          {/* STEP 3: OTP Reset Success */}
+          {step === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20, paddingTop: 16 }}>
-              {/* Success Icon */}
               <div style={{ color: '#0d9488', marginBottom: 8 }}>
                 <CheckCircle2 size={64} strokeWidth={1.5} />
               </div>
 
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1b1c1b', margin: '0 0 10px' }}>
-                  Email Berhasil Dikirim!
+                  Kata Sandi Diperbarui!
                 </h2>
                 <p style={{ fontSize: 15, color: '#6e7979', lineHeight: 1.6, margin: 0 }}>
-                  Kami telah mengirimkan instruksi setel ulang kata sandi ke <strong>{email}</strong>. 
-                  Silakan periksa folder kotak masuk serta folder spam/promosi Anda.
+                  Kata sandi akun Anda berhasil diganti secara aman. Silakan masuk kembali menggunakan kredensial baru Anda.
                 </p>
               </div>
 
               <div style={{ flex: 1, minHeight: 48 }} />
 
-              {/* Return CTA */}
+              <Button onClick={() => navigate(ROUTES.LOGIN)}>
+                Kembali ke Halaman Masuk
+              </Button>
+            </div>
+          )}
+
+          {/* STEP 4: Fallback Email Sent (Legacy Users) */}
+          {step === 4 && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20, paddingTop: 16 }}>
+              <div style={{ color: '#0d9488', marginBottom: 8 }}>
+                <Mail size={64} strokeWidth={1.5} />
+              </div>
+
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1b1c1b', margin: '0 0 10px' }}>
+                  Email Pemulihan Dikirim!
+                </h2>
+                <p style={{ fontSize: 15, color: '#6e7979', lineHeight: 1.6, margin: 0 }}>
+                  Karena nomor WhatsApp belum ditambahkan ke profil Anda, kami telah mengirimkan tautan penyetelan ulang sandi klasik secara otomatis ke email terdaftar: <strong style={{ color: '#1b1c1b' }}>{maskEmail(userData?.email)}</strong>.
+                </p>
+                <p style={{ fontSize: 13, color: '#8c9594', lineHeight: 1.5, marginTop: 12 }}>
+                  Silakan periksa folder kotak masuk/spam Anda. Setelah masuk, jangan lupa memperbarui nomor WhatsApp Anda di modal Profil.
+                </p>
+              </div>
+
+              <div style={{ flex: 1, minHeight: 32 }} />
+
               <Button onClick={() => navigate(ROUTES.LOGIN)}>
                 Kembali ke Halaman Masuk
               </Button>
 
               <button
                 type="button"
-                onClick={() => setIsSubmitted(false)}
+                onClick={() => setStep(1)}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -200,7 +438,7 @@ export default function ForgotPasswordPage() {
                   textDecoration: 'underline'
                 }}
               >
-                Kirim ulang ke email berbeda
+                Coba identitas berbeda
               </button>
             </div>
           )}

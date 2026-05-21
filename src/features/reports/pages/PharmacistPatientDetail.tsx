@@ -9,7 +9,10 @@
 //   ClinicalChatPanel   → chat apoteker ↔ pasien
 //   EscalationActionPanel → tombol eskalasi + actions
 // ============================================================
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@lib/supabase'
 import PharmacistLayout from '../components/PharmacistLayout'
 import { usePatientDetail } from '../api/usePatientDetail'
 import { useAuthStore } from '@features/auth/store'
@@ -27,6 +30,27 @@ export default function PharmacistPatientDetail() {
   const { id, reportId } = useParams()
   const { user: currentUser } = useAuthStore()
   const { data: patient, isLoading } = usePatientDetail(id, reportId)
+  const queryClient = useQueryClient()
+  const [isUpdating, setIsUpdating] = useState(false)
+
+  const toggleQoL = async () => {
+    if (!id || !patient) return
+    setIsUpdating(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_qol_active: !patient.isQolActive })
+        .eq('id', id)
+
+      if (error) throw error
+      
+      await queryClient.invalidateQueries({ queryKey: ['patientDetail', id, reportId] })
+    } catch (err) {
+      console.error('Failed to toggle QoL active state:', err)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -97,6 +121,43 @@ export default function PharmacistPatientDetail() {
               bp={patient.bp}
               cycleInfo={patient.cycleInfo}
             />
+
+            {/* QoL Settings Toggle Panel */}
+            <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-stone-100 flex items-center justify-between transition-all hover:shadow-md">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all ${patient.isQolActive ? 'bg-primary-container/20 text-primary' : 'bg-stone-100 text-stone-400'}`}>
+                  <span className="material-symbols-outlined">
+                    {patient.isQolActive ? 'spa' : 'sentiment_satisfied'}
+                  </span>
+                </div>
+                <div>
+                  <h4 className="font-headline font-bold text-sm text-on-surface">Survei Kualitas Hidup (QoL)</h4>
+                  <p className="text-[11px] text-stone-400 font-body leading-normal">
+                    {patient.isQolActive 
+                      ? 'Aktif — Pasien dapat mengisi kuesioner QoL di portal mereka' 
+                      : 'Nonaktif — Portal pasien hanya menampilkan pelaporan gejala MESO'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={toggleQoL}
+                disabled={isUpdating}
+                className={`px-4 py-2 rounded-xl text-xs font-headline font-bold transition-all flex items-center gap-2 ${
+                  patient.isQolActive
+                    ? 'bg-error-container/20 text-error hover:bg-error-container/30 border border-error/10'
+                    : 'bg-primary text-on-primary hover:opacity-90 shadow-sm'
+                } disabled:opacity-50`}
+              >
+                {isUpdating ? (
+                  <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : patient.isQolActive ? (
+                  'Nonaktifkan'
+                ) : (
+                  'Aktifkan Survei'
+                )}
+              </button>
+            </div>
+
             <SymptomReportGrid symptoms={patient.latestSymptoms} />
             <DietaryStatusCard items={patient.latestDietary} />
             <PatientTrendChart trends={patient.trends} />

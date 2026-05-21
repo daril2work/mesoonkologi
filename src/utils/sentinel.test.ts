@@ -66,4 +66,34 @@ describe('Sentinel Logic (Dietary Exclusion)', () => {
     
     expect(autoGrade(symptoms)).toBe('green')
   })
+
+  it('should detect sentinel when new symptoms (constipation, insomnia, alopecia) have high grade', () => {
+    const symptomsHighConstipation: SymptomData = {
+      constipation: 3 // Grade 3 constipation -> sentinel
+    }
+    expect(detectSentinel(symptomsHighConstipation)).toBe(true)
+    expect(autoGrade(symptomsHighConstipation)).toBe('red')
+
+    const symptomsHighInsomnia: SymptomData = {
+      insomnia: 3
+    }
+    expect(detectSentinel(symptomsHighInsomnia)).toBe(true)
+    expect(autoGrade(symptomsHighInsomnia)).toBe('red')
+
+    const symptomsHighAlopecia: SymptomData = {
+      alopecia: 3
+    }
+    expect(detectSentinel(symptomsHighAlopecia)).toBe(true)
+    expect(autoGrade(symptomsHighAlopecia)).toBe('red')
+  })
+
+  it('should grade yellow for moderate new symptoms', () => {
+    const symptomsModerate: SymptomData = {
+      constipation: 2,
+      insomnia: 1
+    }
+    expect(detectSentinel(symptomsModerate)).toBe(false)
+    expect(autoGrade(symptomsModerate)).toBe('yellow')
+  })
 })
+

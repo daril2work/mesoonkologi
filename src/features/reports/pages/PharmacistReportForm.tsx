@@ -79,7 +79,7 @@ export default function PharmacistReportForm() {
             <h3 className="text-lg font-bold text-on-surface headline-font px-2">Gejala & Kondisi Pasien</h3>
             <div className="grid grid-cols-1 gap-4">
               {SYMPTOMS_UI_CONFIG.map((symptom) => {
-                const currentValue = formData[symptom.key as keyof SymptomData] ?? null
+                const currentValue = (formData[symptom.key as keyof SymptomData] ?? null) as number | null
 
                 return (
                   <div 

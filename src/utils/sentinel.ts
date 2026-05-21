@@ -12,7 +12,7 @@ export function detectSentinel(symptoms: SymptomData): boolean {
   // Check explicit sentinel symptoms (fever, dyspnea)
   for (const key of SENTINEL_KEYS) {
     const value = symptoms[key as keyof SymptomData]
-    if (value && value >= 1) return true
+    if (value !== undefined && typeof value === 'number' && value >= 1) return true
   }
 
   // Check if any valid symptom hits grade threshold (≥3)

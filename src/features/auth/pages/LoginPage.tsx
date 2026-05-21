@@ -48,14 +48,21 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) {
-      toast.error('Mohon isi email dan kata sandi Anda')
+      toast.error('Mohon isi email/WhatsApp/ID Pasien dan kata sandi Anda')
       return
     }
     
     setIsLoading(true)
     try {
+      // Panggil RPC database untuk menerjemahkan WhatsApp / ID Pasien / Email menjadi email login yang valid
+      const { data: formattedEmail, error: rpcError } = await supabase.rpc('get_login_identifier', {
+        search_val: email
+      })
+
+      if (rpcError) throw rpcError
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: formattedEmail || email,
         password,
       })
 
@@ -68,7 +75,7 @@ export default function LoginPage() {
       toast.success('Berhasil masuk!')
       // Do nothing here — the useEffect above will redirect once DB fetch finishes
     } catch (err: any) {
-      toast.error('Terjadi kesalahan yang tidak terduga.')
+      toast.error(err.message || 'Terjadi kesalahan yang tidak terduga.')
       setIsLoading(false)
     }
   }
@@ -141,11 +148,11 @@ export default function LoginPage() {
         >
           {/* Email / ID */}
           <FormInput
-            label="ID Pelanggan atau Email"
+            label="WhatsApp / ID Pasien / Email"
             type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Masukkan ID atau email Anda"
+            placeholder="Masukkan nomor WA, ID Pasien, atau email Anda"
             autoComplete="username"
             autoCapitalize="none"
             inputMode="email"

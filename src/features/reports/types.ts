@@ -19,8 +19,20 @@ export interface SymptomData {
   appetiteLoss?: number
   fever?: number        // boolean-like: 0 or 1 (≥38°C)
   dyspnea?: number      // boolean-like: 0 or 1
+  constipation?: number
+  alopecia?: number
+  insomnia?: number
   waterIntake?: number  // Number of glasses
   foodIntake?: number   // Scale 1-5
+  otherSymptomName?: string
+  otherSymptomGrade?: number
+  qol?: {
+    mobility?: number             // 1-3 (Mobilitas)
+    selfCare?: number             // 1-3 (Perawatan Diri)
+    usualActivities?: number      // 1-3 (Kegiatan Utama)
+    painDiscomfort?: number       // 1-3 (Rasa Nyeri / Tidak Nyaman)
+    anxietyDepression?: number    // 1-3 (Cemas / Depresi)
+  }
 }
 
 export interface SymptomReport {

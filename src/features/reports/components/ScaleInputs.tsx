@@ -6,6 +6,7 @@
 interface EmoticonScaleProps {
   value: number | null
   onChange: (val: number) => void
+  customLabels?: string[]
 }
 
 const EMOTICON_OPTIONS = [
@@ -15,7 +16,7 @@ const EMOTICON_OPTIONS = [
   { level: 3, emoji: '😫', label: 'Berat' },
 ] as const
 
-export function EmoticonScale({ value, onChange }: EmoticonScaleProps) {
+export function EmoticonScale({ value, onChange, customLabels }: EmoticonScaleProps) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
       {EMOTICON_OPTIONS.map((opt) => {
@@ -25,7 +26,7 @@ export function EmoticonScale({ value, onChange }: EmoticonScaleProps) {
             key={opt.level}
             type="button"
             onClick={() => onChange(opt.level)}
-            aria-label={`${opt.label} (${opt.level})`}
+            aria-label={`${customLabels?.[opt.level] || opt.label} (${opt.level})`}
             aria-pressed={isSelected}
             style={{
               flex: 1,
@@ -56,7 +57,7 @@ export function EmoticonScale({ value, onChange }: EmoticonScaleProps) {
               color: isSelected ? '#046b5e' : '#727878',
               textAlign: 'center'
             }}>
-              {opt.label}
+              {customLabels?.[opt.level] || opt.label}
             </span>
           </button>
         )
