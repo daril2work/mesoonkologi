@@ -3,6 +3,8 @@
 // Single Responsibility: Render grid kartu gejala harian
 // ============================================================
 import { clsx } from 'clsx'
+import { format } from 'date-fns'
+import { id as localeId } from 'date-fns/locale'
 
 interface SymptomItem {
   label: string
@@ -12,6 +14,7 @@ interface SymptomItem {
 
 interface SymptomReportGridProps {
   symptoms: SymptomItem[]
+  reportDate?: string
 }
 
 const SYMPTOM_ICON_MAP: Record<string, string> = {
@@ -34,7 +37,7 @@ function getSymptomIcon(label: string): string {
   return 'monitor_heart'
 }
 
-export function SymptomReportGrid({ symptoms }: SymptomReportGridProps) {
+export function SymptomReportGrid({ symptoms, reportDate }: SymptomReportGridProps) {
   if (symptoms.length === 0) {
     return (
       <div className="py-16 text-center text-stone-400">
@@ -46,11 +49,16 @@ export function SymptomReportGrid({ symptoms }: SymptomReportGridProps) {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 border-b border-stone-105/50 pb-4">
         <h3 className="text-2xl font-headline font-extrabold text-on-surface tracking-tight">
-          Laporan &apos;Klik-Klik&apos; Harian
+          Laporan Gejala Harian
         </h3>
-        <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Data Terbaru</span>
+        <span className="text-[11px] font-black text-stone-400 uppercase tracking-widest flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-sm text-stone-300">schedule</span>
+          {reportDate 
+            ? `Dikirim: ${format(new Date(reportDate), 'dd MMM yyyy, HH:mm', { locale: localeId })} WIB`
+            : 'Data Terbaru'}
+        </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -23,7 +23,7 @@ export function DietaryStatusCard({ items }: DietaryStatusCardProps) {
         <h4 className="text-sm font-black text-stone-500 uppercase tracking-widest headline-font">Status Nutrisi</h4>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {items.map((item, idx) => (
           <div key={idx} className="bg-white p-4 rounded-xl border border-stone-100 shadow-sm">
             <p className="text-[10px] font-bold text-stone-400 uppercase tracking-tight mb-1">{item.label}</p>

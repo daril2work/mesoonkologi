@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Try to get profile data to enrich user object
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, full_name')
+      .select('role, full_name, is_active')
       .eq('id', session.user.id)
       .single()
 
@@ -49,6 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       role: profile.role as UserRole,
       fullName: profile.full_name ?? null,
       createdAt: session.user.created_at,
+      isActive: profile.is_active ?? true,
     }
 
     set({

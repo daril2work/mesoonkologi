@@ -161,16 +161,16 @@ export default function PharmacistSchedule() {
 
   return (
     <PharmacistLayout>
-      <div className="pt-8 px-8 pb-12 max-w-[1600px] mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
 
         {/* Page Content Grid */}
-        <section className="p-10 grid grid-cols-12 gap-10 max-w-[1600px] mx-auto w-full flex-grow">
+        <section className="p-0 lg:p-10 grid grid-cols-12 gap-6 lg:gap-10 max-w-[1600px] mx-auto w-full flex-grow">
           {/* LEFT COLUMN: CALENDAR */}
           <div className="col-span-12 xl:col-span-8 space-y-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-4xl font-extrabold font-headline text-on-surface tracking-tight">Jadwal Klinis</h2>
-                <div className="flex items-center gap-2 mt-1">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between md:justify-start gap-3">
+                <h2 className="text-2xl sm:text-3xl font-extrabold font-headline text-on-surface tracking-tight">Jadwal Klinis</h2>
+                <div className="flex items-center justify-center gap-2">
                   <button 
                     onClick={handlePrevDate}
                     className="p-1 hover:bg-stone-100 rounded-full transition-colors flex items-center justify-center text-stone-500 hover:text-on-surface active:scale-90"
@@ -178,7 +178,7 @@ export default function PharmacistSchedule() {
                   >
                     <span className="material-symbols-outlined text-xl">chevron_left</span>
                   </button>
-                  <p className="text-on-surface-variant font-medium min-w-[140px] text-center select-none">
+                  <p className="text-on-surface-variant font-medium min-w-[140px] text-center select-none text-sm sm:text-base">
                     {viewType === 'monthly' 
                       ? format(currentDate, 'MMMM yyyy', { locale: id })
                       : `${format(startOfWeek(currentDate, { weekStartsOn: 0 }), 'd MMM')} - ${format(endOfWeek(currentDate, { weekStartsOn: 0 }), 'd MMM yyyy', { locale: id })}`
@@ -193,12 +193,12 @@ export default function PharmacistSchedule() {
                   </button>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="bg-surface-container-low p-1.5 rounded-xl flex border border-stone-100 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                <div className="bg-surface-container-low p-1.5 rounded-xl flex border border-stone-100 shadow-sm justify-between sm:justify-start flex-1 sm:flex-none">
                   <button 
                     onClick={() => setViewType('monthly')}
                     className={clsx(
-                      "px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all",
+                      "px-4 sm:px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all flex-1 sm:flex-none",
                       viewType === 'monthly' 
                         ? "bg-white shadow-sm text-primary" 
                         : "text-stone-400 hover:text-on-surface"
@@ -209,7 +209,7 @@ export default function PharmacistSchedule() {
                   <button 
                     onClick={() => setViewType('weekly')}
                     className={clsx(
-                      "px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all",
+                      "px-4 sm:px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all flex-1 sm:flex-none",
                       viewType === 'weekly' 
                         ? "bg-white shadow-sm text-primary" 
                         : "text-stone-400 hover:text-on-surface"
@@ -223,7 +223,7 @@ export default function PharmacistSchedule() {
                     setFormData(prev => ({ ...prev, date: format(selectedDate, 'yyyy-MM-dd') }))
                     setIsModalOpen(true)
                   }}
-                  className="bg-primary text-on-primary px-8 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:opacity-90 shadow-lg shadow-primary/20 transition-all active:scale-95"
+                  className="bg-primary text-on-primary px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 shadow-lg shadow-primary/20 transition-all active:scale-95 w-full sm:w-auto font-body"
                 >
                   <span className="material-symbols-outlined text-[20px]">add</span>
                   Tambah Jadwal
@@ -232,11 +232,11 @@ export default function PharmacistSchedule() {
             </div>
 
             {/* Calendar Widget */}
-            <div className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm border border-stone-100">
+            <div className="bg-surface-container-lowest rounded-2xl p-3 sm:p-6 lg:p-8 shadow-sm border border-stone-100">
               {/* Days Header */}
-              <div className="grid grid-cols-7 mb-6">
+              <div className="grid grid-cols-7 mb-4 sm:mb-6">
                 {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
-                  <div key={day} className="text-center py-2 text-[10px] font-black text-stone-400 tracking-[0.2em] uppercase">{day}</div>
+                  <div key={day} className="text-center py-1 sm:py-2 text-[8px] sm:text-[10px] font-black text-stone-400 tracking-wider sm:tracking-[0.2em] uppercase">{day}</div>
                 ))}
               </div>
               
@@ -253,27 +253,27 @@ export default function PharmacistSchedule() {
                       key={idx} 
                       onClick={() => setSelectedDate(day)}
                       className={clsx(
-                        viewType === 'weekly' ? "h-64" : "h-36",
-                        "p-4 flex flex-col gap-2 transition-all cursor-pointer relative group",
+                        viewType === 'weekly' ? "h-40 sm:h-64" : "h-16 sm:h-28 lg:h-36",
+                        "p-1.5 sm:p-3 lg:p-4 flex flex-col gap-1 lg:gap-2 transition-all cursor-pointer relative group",
                         isCurrentMonth ? "bg-white hover:bg-surface-container-low" : "bg-stone-50/50 text-stone-300",
                         isTodayDate && "ring-2 ring-primary ring-inset z-10",
                         isSelectedDate && !isTodayDate && "ring-2 ring-stone-300 ring-inset z-10 bg-stone-50/40"
                       )}
                     >
                       <span className={clsx(
-                        "text-sm font-bold",
+                        "text-xs sm:text-sm font-bold",
                         isTodayDate ? "text-primary" : isCurrentMonth ? "text-on-surface" : "text-stone-300"
                       )}>
                         {format(day, 'd')}
                       </span>
-                      {isTodayDate && <span className="text-[9px] font-black text-primary uppercase tracking-widest">Today</span>}
+                      {isTodayDate && <span className="text-[7px] sm:text-[9px] font-black text-primary uppercase tracking-widest leading-none hidden sm:inline">Today</span>}
                       
-                      <div className="flex flex-col gap-1 mt-1">
+                      <div className="flex flex-wrap sm:flex-col gap-1 mt-1">
                         {daySchedules.slice(0, viewType === 'weekly' ? 5 : 2).map((s, i) => (
                           <div 
                             key={i} 
                             className={clsx(
-                              "text-[9px] px-2 py-1 rounded truncate font-black uppercase tracking-wider",
+                              "text-[9px] px-2 py-1 rounded truncate font-black uppercase tracking-wider hidden sm:block",
                               s.title.includes('Kemo') ? "bg-primary-container/40 text-on-primary-container" :
                               s.title.includes('Kontrol') ? "bg-secondary-container/20 text-on-secondary-container" :
                               "bg-tertiary-container/30 text-on-tertiary-container"
@@ -282,8 +282,27 @@ export default function PharmacistSchedule() {
                             {s.patientName.split(' ')[0]}
                           </div>
                         ))}
+                        
+                        {/* Dot indicator for mobile month view */}
+                        <div className="flex sm:hidden gap-0.5 flex-wrap">
+                          {daySchedules.slice(0, 3).map((s, i) => (
+                            <span 
+                              key={i}
+                              className={clsx(
+                                "w-1.5 h-1.5 rounded-full shrink-0",
+                                s.title.includes('Kemo') ? "bg-primary" :
+                                s.title.includes('Kontrol') ? "bg-secondary" :
+                                "bg-amber-400"
+                              )}
+                            />
+                          ))}
+                          {daySchedules.length > 3 && (
+                            <span className="text-[7px] font-black text-stone-400 leading-none">+</span>
+                          )}
+                        </div>
+
                         {daySchedules.length > (viewType === 'weekly' ? 5 : 2) && (
-                          <div className="text-[9px] font-black text-stone-400 pl-2">
+                          <div className="text-[9px] font-black text-stone-400 pl-1 hidden sm:block">
                             +{daySchedules.length - (viewType === 'weekly' ? 5 : 2)} lagi
                           </div>
                         )}
@@ -294,18 +313,18 @@ export default function PharmacistSchedule() {
               </div>
 
               {/* Legend Section */}
-              <div className="mt-10 pt-8 border-t border-stone-100 flex gap-8">
+              <div className="mt-6 pt-6 border-t border-stone-100 flex flex-wrap gap-4 sm:gap-8">
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/20"></span>
-                  <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest">Sesi Kemoterapi</span>
+                  <span className="text-[9px] sm:text-[10px] font-black text-stone-500 uppercase tracking-widest">Sesi Kemoterapi</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/20"></span>
-                  <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest">Konsultasi Umum</span>
+                  <span className="text-[9px] sm:text-[10px] font-black text-stone-500 uppercase tracking-widest">Konsultasi Umum</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-secondary shadow-sm shadow-secondary/20"></span>
-                  <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest">Kontrol Lanjutan</span>
+                  <span className="text-[9px] sm:text-[10px] font-black text-stone-500 uppercase tracking-widest">Kontrol Lanjutan</span>
                 </div>
               </div>
             </div>

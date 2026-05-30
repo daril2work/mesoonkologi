@@ -29,6 +29,7 @@ const PharmacistSettings = lazy(() => import('@features/reports/pages/Pharmacist
 const PharmacistChat = lazy(() => import('@features/reports/pages/PharmacistChat'))
 const PatientPlaceholderPage = lazy(() => import('@features/reports/pages/PatientPlaceholderPage'))
 const PrivacyPolicy = lazy(() => import('@features/auth/pages/PrivacyPolicy'))
+const DeactivatedAccountPage = lazy(() => import('@features/auth/pages/DeactivatedAccountPage'))
 
 // Clinician Pages
 const ClinicianWatchlist = lazy(() => import('@features/clinician/pages/ClinicianWatchlist'))
@@ -54,6 +55,7 @@ export default function AppRouter() {
         <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
         <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
         <Route path={ROUTES.PRIVACY_POLICY} element={<PrivacyPolicy />} />
+        <Route path={ROUTES.DEACTIVATED} element={<DeactivatedAccountPage />} />
         <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.LOGIN} replace />} />
 
         {/* Patient Routes */}

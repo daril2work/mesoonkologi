@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import PharmacistLayout from '../components/PharmacistLayout'
 import { usePatientDirectory, usePatientStats } from '../api/usePatientDirectory'
@@ -7,12 +7,20 @@ import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { ROUTES } from '@configs/app.config'
 import { clsx } from 'clsx'
-import { exportToCSV } from '@utils/helpers'
+import { exportToCSV, getDeactivationLabel } from '@utils/helpers'
 
 export default function PharmacistPatients() {
   const { data: patients, isLoading } = usePatientDirectory()
   const { data: stats } = usePatientStats()
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active')
+
+  const activeCount = useMemo(() => patients?.filter(p => p.isActive).length ?? 0, [patients])
+  const inactiveCount = useMemo(() => patients?.filter(p => !p.isActive).length ?? 0, [patients])
+
+  const tabPatients = useMemo(() => {
+    return patients?.filter(p => activeTab === 'active' ? p.isActive : !p.isActive)
+  }, [patients, activeTab])
 
   // S-05: Filter & sort logic ada di usePatientFilter, bukan inline
   const { 
@@ -22,7 +30,7 @@ export default function PharmacistPatients() {
     setSortKey, 
     statusFilter, 
     setStatusFilter 
-  } = usePatientFilter(patients)
+  } = usePatientFilter(tabPatients)
 
   const handleExport = () => {
     const exportData = filteredPatients.map(p => ({
@@ -38,14 +46,14 @@ export default function PharmacistPatients() {
 
   return (
     <PharmacistLayout>
-      <div className="pt-8 px-8 pb-12 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         {/* HEADER SECTION */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
           <div>
-            <h2 className="text-3xl headline-font font-extrabold text-on-surface tracking-tight">Direktori Data Pasien</h2>
-            <p className="text-on-surface-variant mt-1 font-medium">Kelola dan pantau perkembangan pasien dalam perawatan kemoterapi.</p>
+            <h2 className="text-2xl sm:text-3xl headline-font font-extrabold text-on-surface tracking-tight">Direktori Data Pasien</h2>
+            <p className="text-on-surface-variant text-sm mt-1 font-medium">Kelola dan pantau perkembangan pasien dalam perawatan kemoterapi.</p>
           </div>
-          <div className="flex gap-3 relative">
+          <div className="flex gap-3 relative w-full sm:w-auto justify-end">
             <div className="relative">
               <button 
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -137,19 +145,53 @@ export default function PharmacistPatients() {
 
         {/* Table Section */}
         <div className="bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm border border-stone-100">
-          <div className="p-6 flex items-center justify-between border-b border-surface-container bg-surface-container-low/20">
-            <div className="flex items-center gap-4">
-              <span className="font-bold text-lg headline-font text-on-surface">Daftar Pasien Aktif</span>
-              <span className="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
-                {patients?.length ?? 0} Pasien
-              </span>
+          <div className="p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-container bg-surface-container-low/20">
+            {/* Row 1 (Mobile) / Left Side (Desktop): Title & Tab Controls */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex bg-stone-100/80 p-1 rounded-xl border border-stone-200/50 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('active')
+                    setStatusFilter('all')
+                  }}
+                  className={clsx(
+                    "py-2 px-4 rounded-lg font-headline font-bold text-xs flex items-center gap-2 transition-all active:scale-[0.98] cursor-pointer",
+                    activeTab === 'active'
+                      ? "bg-white text-primary shadow-xs font-black"
+                      : "text-stone-500 hover:text-stone-700"
+                  )}
+                >
+                  Pasien Aktif ({activeCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('inactive')
+                    setStatusFilter('all')
+                  }}
+                  className={clsx(
+                    "py-2 px-4 rounded-lg font-headline font-bold text-xs flex items-center gap-2 transition-all active:scale-[0.98] cursor-pointer",
+                    activeTab === 'inactive'
+                      ? "bg-white text-primary shadow-xs font-black"
+                      : "text-stone-500 hover:text-stone-700"
+                  )}
+                >
+                  Pasien Nonaktif ({inactiveCount})
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
+
+            {/* Row 2 (Mobile) / Right Side (Desktop): Select Dropdown & Count badge */}
+            <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+              <span className="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-black text-on-surface-variant uppercase tracking-widest shrink-0">
+                {filteredPatients.length} Pasien
+              </span>
               {/* S-05: Select terhubung ke setSortKey dari usePatientFilter */}
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as any)}
-                className="bg-transparent border-none text-xs font-black text-stone-500 focus:ring-0 uppercase tracking-widest cursor-pointer outline-none"
+                className="bg-transparent border-none text-xs font-black text-stone-500 focus:ring-0 uppercase tracking-widest cursor-pointer outline-none py-1 pl-2"
               >
                 <option value="status">Urutkan: Status</option>
                 <option value="name">Urutkan: Nama (A-Z)</option>
@@ -157,9 +199,9 @@ export default function PharmacistPatients() {
               </select>
             </div>
           </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+                   <div className="overflow-x-auto">
+            {/* DESKTOP TABLE */}
+            <table className="w-full text-left hidden md:table">
               <thead>
                 <tr className="bg-surface-container-low/50 text-on-surface-variant uppercase text-[10px] tracking-widest font-black border-b border-stone-100">
                   <th className="px-8 py-4">ID Pasien</th>
@@ -201,20 +243,37 @@ export default function PharmacistPatients() {
                         {p.lastReportDate ? format(new Date(p.lastReportDate), 'dd MMM yyyy', { locale: id }) : 'Belum melapor'}
                       </td>
                       <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <div className={clsx(
-                            "w-2 h-2 rounded-full",
-                            p.overallStatus === 'Stabil' ? "bg-teal-500" : 
-                            p.overallStatus === 'Butuh Tindakan' ? "bg-error animate-pulse" : "bg-amber-400"
-                          )}></div>
-                          <span className={clsx(
-                            "text-xs font-bold uppercase tracking-wider",
-                            p.overallStatus === 'Stabil' ? "text-teal-700" : 
-                            p.overallStatus === 'Butuh Tindakan' ? "text-error" : "text-amber-700"
-                          )}>
-                            {p.overallStatus}
-                          </span>
-                        </div>
+                        {p.isActive ? (
+                          <div className="flex items-center gap-2">
+                            <div className={clsx(
+                              "w-2 h-2 rounded-full",
+                              p.overallStatus === 'Stabil' ? "bg-teal-500" : 
+                              p.overallStatus === 'Butuh Tindakan' ? "bg-error animate-pulse" : "bg-amber-400"
+                            )}></div>
+                            <span className={clsx(
+                              "text-xs font-bold uppercase tracking-wider",
+                              p.overallStatus === 'Stabil' ? "text-teal-700" : 
+                              p.overallStatus === 'Butuh Tindakan' ? "text-error" : "text-amber-700"
+                            )}>
+                              {p.overallStatus}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className={clsx(
+                              "w-2 h-2 rounded-full",
+                              p.statusReason === 'deceased' ? "bg-rose-500" : 
+                              p.statusReason === 'discharged' ? "bg-emerald-500" : "bg-stone-400"
+                            )}></div>
+                            <span className={clsx(
+                              "text-xs font-bold uppercase tracking-wider",
+                              p.statusReason === 'deceased' ? "text-rose-700" : 
+                              p.statusReason === 'discharged' ? "text-emerald-700" : "text-stone-600"
+                            )}>
+                              Nonaktif — {getDeactivationLabel(p.statusReason)}
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -247,31 +306,119 @@ export default function PharmacistPatients() {
                 )}
               </tbody>
             </table>
-          </div>
 
-          {/* Pagination */}
-          <div className="p-6 bg-surface-container-low/10 flex items-center justify-between border-t border-stone-100">
-            <span className="text-[10px] text-stone-500 font-black uppercase tracking-[0.15em]">
-              Menampilkan {patients?.length ?? 0} dari {stats?.total?.toLocaleString() ?? '—'} pasien
-            </span>
-            <div className="flex items-center gap-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-stone-400 active:scale-90 transition-all">
-                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary text-[10px] font-black shadow-sm">1</button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-[10px] font-black text-stone-600 transition-colors">2</button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-[10px] font-black text-stone-600 transition-colors">3</button>
-              <span className="mx-1 text-stone-400 text-[10px]">...</span>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-stone-400 active:scale-90 transition-all">
-                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-              </button>
+            {/* MOBILE CARD LIST (OPSI A) */}
+            <div className="block md:hidden divide-y divide-stone-100">
+              {isLoading ? (
+                <div className="px-6 py-10 text-center animate-pulse font-bold text-stone-400">Menyinkronkan data pasien...</div>
+              ) : filteredPatients.length === 0 ? (
+                <div className="px-6 py-12 text-center text-stone-400 font-bold">
+                  {searchTerm ? 'Tidak ada pasien yang cocok dengan pencarian.' : 'Belum ada pasien terdaftar.'}
+                </div>
+              ) : (
+                filteredPatients.map((p) => (
+                  <div key={p.id} className="p-4 hover:bg-surface-container-low transition-colors flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-primary-container/20 overflow-hidden flex items-center justify-center font-bold text-primary text-sm border border-primary/10">
+                          {p.fullName.charAt(0)}
+                        </div>
+                        <div>
+                          <span className="font-bold text-sm text-on-surface">{p.fullName}</span>
+                          <p className="text-[10px] font-mono font-bold text-stone-400 tracking-wider">#P-{p.id.slice(0, 6).toUpperCase()}</p>
+                        </div>
+                      </div>
+                      <span className={clsx(
+                        "px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-widest",
+                        p.overallStatus === 'Butuh Tindakan' ? "bg-tertiary-container text-on-tertiary-container" : "bg-primary-container text-on-primary-container"
+                      )}>
+                        Siklus {p.currentCycle} / 8
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-stone-50/60 p-2.5 rounded-xl border border-stone-100 text-xs">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Laporan Terakhir</span>
+                        <span className="text-on-surface-variant font-medium">
+                          {p.lastReportDate ? format(new Date(p.lastReportDate), 'dd MMM yyyy', { locale: id }) : 'Belum melapor'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Status Overall</span>
+                        {p.isActive ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className={clsx(
+                              "w-2 h-2 rounded-full",
+                              p.overallStatus === 'Stabil' ? "bg-teal-500" : 
+                              p.overallStatus === 'Butuh Tindakan' ? "bg-error animate-pulse" : "bg-amber-400"
+                            )}></div>
+                            <span className={clsx(
+                              "text-xs font-bold uppercase tracking-wider",
+                              p.overallStatus === 'Stabil' ? "text-teal-700" : 
+                              p.overallStatus === 'Butuh Tindakan' ? "text-error" : "text-amber-700"
+                            )}>
+                              {p.overallStatus}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <div className={clsx(
+                              "w-2 h-2 rounded-full",
+                              p.statusReason === 'deceased' ? "bg-rose-500" : 
+                              p.statusReason === 'discharged' ? "bg-emerald-500" : "bg-stone-400"
+                            )}></div>
+                            <span className={clsx(
+                              "text-xs font-bold uppercase tracking-wider",
+                              p.statusReason === 'deceased' ? "text-rose-700" : 
+                              p.statusReason === 'discharged' ? "text-emerald-700" : "text-stone-600"
+                            )}>
+                              Nonaktif — {getDeactivationLabel(p.statusReason)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Mobile Aksi (selalu terlihat di ponsel karena tidak ada hover) */}
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-stone-100/50">
+                      <Link 
+                        to={ROUTES.PHARMA_PATIENT_DETAIL.replace(':id', p.id).replace('/:reportId?', '')} 
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 hover:text-primary transition-all text-xs font-bold shadow-sm flex-1 justify-center"
+                        title="Lihat Profil & Detail"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">person</span>
+                        Detail
+                      </Link>
+                      <Link 
+                        to={ROUTES.PHARMA_CHAT} 
+                        state={{ patientId: p.id, patientName: p.fullName }}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 hover:text-primary transition-all text-xs font-bold shadow-sm flex-1 justify-center"
+                        title="Chat dengan Pasien"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">chat_bubble</span>
+                        Chat
+                      </Link>
+                      <Link 
+                        to={ROUTES.PHARMA_SCHEDULE}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 hover:text-primary transition-all text-xs font-bold shadow-sm flex-1 justify-center"
+                        title="Atur Jadwal"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">edit_calendar</span>
+                        Jadwal
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
+
+          {/* Pagination dihapus karena data diambil semua (tanpa offset), tidak fungsional */}
         </div>
 
         {/* Asymmetric Support Section */}
         <div className="mt-12 flex flex-col lg:flex-row gap-8">
-          <div className="flex-1 bg-secondary-fixed/10 p-10 rounded-xl relative overflow-hidden group border border-secondary-container/10">
+          <div className="flex-1 bg-secondary-fixed/10 p-6 sm:p-10 rounded-xl relative overflow-hidden group border border-secondary-container/10">
             <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-secondary-fixed/20 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
             <div className="relative z-10 max-w-lg">
               <h4 className="text-2xl headline-font font-bold text-on-secondary-fixed mb-4 tracking-tight">Butuh panduan teknis?</h4>
@@ -285,7 +432,7 @@ export default function PharmacistPatients() {
             </div>
           </div>
           
-          <div className="w-full lg:w-80 bg-tertiary-fixed/10 p-10 rounded-xl border border-tertiary-container/10 shadow-sm">
+          <div className="w-full lg:w-80 bg-tertiary-fixed/10 p-6 sm:p-10 rounded-xl border border-tertiary-container/10 shadow-sm">
             <h4 className="headline-font font-bold text-on-tertiary-fixed mb-6 tracking-tight flex items-center gap-2">
               <span className="material-symbols-outlined text-tertiary">notifications_active</span>
               Notifikasi

@@ -25,8 +25,17 @@ export function usePharmacistQueue() {
       const { data, error } = await supabase
         .from('symptom_reports')
         .select(`
-          *,
+          id,
+          patient_id,
+          symptoms,
+          clinical_note,
+          is_sentinel_alert,
+          grade_auto,
+          grade_final,
+          status,
           escalation_status,
+          created_at,
+          updated_at,
           patient:profiles (
             id,
             full_name,
@@ -63,13 +72,13 @@ export function usePharmacistQueue() {
           createdAt: row.created_at,
           updatedAt: row.updated_at,
           patient: {
-            id: Array.isArray(row.patient) ? row.patient[0]?.id : row.patient?.id ?? '',
+            id: Array.isArray(row.patient) ? (row.patient as any)[0]?.id : (row.patient as any)?.id ?? '',
             fullName: Array.isArray(row.patient) 
-                ? row.patient[0]?.full_name 
-                : row.patient?.full_name ?? 'Pasien Tidak Diketahui',
+                ? (row.patient as any)[0]?.full_name 
+                : (row.patient as any)?.full_name ?? 'Pasien Tidak Diketahui',
             currentCycle: Array.isArray(row.patient)
-                ? row.patient[0]?.current_cycle
-                : row.patient?.current_cycle ?? 1
+                ? (row.patient as any)[0]?.current_cycle
+                : (row.patient as any)?.current_cycle ?? 1
           }
         } as QueueReport
       })

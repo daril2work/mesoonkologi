@@ -51,12 +51,24 @@ export function truncate(text: string, maxLength: number = 100): string {
 /**
  * Get initials from full name
  */
-export function getInitials(name: string): string {
+export function getInitials(name?: string): string {
+  if (!name) return '?'
   return name
     .split(' ')
+    .filter(Boolean)
     .map(word => word.charAt(0).toUpperCase())
     .slice(0, 2)
     .join('')
+}
+
+/**
+ * Get localized deactivation status label
+ */
+export function getDeactivationLabel(reason?: string | null): string {
+  if (!reason) return 'Keluar'
+  if (reason === 'deceased') return 'Meninggal'
+  if (reason === 'discharged') return 'Selesai Terapi'
+  return 'Keluar'
 }
 
 /**

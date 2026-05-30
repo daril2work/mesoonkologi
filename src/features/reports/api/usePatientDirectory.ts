@@ -23,6 +23,8 @@ export function usePatientDirectory() {
           phone_number,
           current_cycle, 
           cancer_site,
+          is_active,
+          status_reason,
           symptom_reports (
             created_at, 
             grade_auto, 
@@ -35,7 +37,7 @@ export function usePatientDirectory() {
       if (error) throw error
 
       // Map data together
-      return (data || []).map(row => mapPatientDirectoryRow(row))
+      return (data || []).map(row => mapPatientDirectoryRow(row as any))
     }
   })
 }
@@ -44,10 +46,6 @@ export function usePatientStats() {
   return useQuery({
     queryKey: ['patientStats'],
     queryFn: async () => {
-      // Aggregate stats from Supabase
-      const { count: total } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'patient')
-      const { count: critical } = await supabase.from('symptom_reports').select('*', { count: 'exact', head: true }).eq('is_sentinel_alert', true).eq('status', 'pending')
-      
       // M-02: Count schedules for this week (Sunday to Sunday)
       const now = new Date()
       const startOfWeek = new Date(now)
@@ -56,17 +54,23 @@ export function usePatientStats() {
       
       const endOfWeek = new Date(startOfWeek)
       endOfWeek.setDate(startOfWeek.getDate() + 7)
-      
-      const { count: scheduledThisWeek } = await supabase
-        .from('patient_schedules')
-        .select('*', { count: 'exact', head: true })
-        .gte('schedule_date', startOfWeek.toISOString())
-        .lt('schedule_date', endOfWeek.toISOString())
 
-      // M-09: Count real education completions
-      const { count: completedEducation } = await supabase
-        .from('patient_education_tracking')
-        .select('*', { count: 'exact', head: true })
+      // Aggregate stats from Supabase concurrently using Promise.all
+      const [
+        { count: total },
+        { count: critical },
+        { count: scheduledThisWeek },
+        { count: completedEducation }
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'patient').eq('is_active', true),
+        supabase.from('symptom_reports').select('id', { count: 'exact', head: true }).eq('is_sentinel_alert', true).eq('status', 'pending'),
+        supabase
+          .from('patient_schedules')
+          .select('id', { count: 'exact', head: true })
+          .gte('schedule_date', startOfWeek.toISOString())
+          .lt('schedule_date', endOfWeek.toISOString()),
+        supabase.from('patient_education_tracking').select('id', { count: 'exact', head: true })
+      ])
 
       return {
         total: total ?? 0,

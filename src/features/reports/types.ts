@@ -118,4 +118,6 @@ export interface PatientDirectoryItem {
   lastReportDate: string | null
   overallStatus: 'Stabil' | 'Observasi' | 'Butuh Tindakan'
   cancerSite?: string | null
+  isActive?: boolean
+  statusReason?: string | null
 }

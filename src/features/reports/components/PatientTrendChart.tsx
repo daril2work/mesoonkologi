@@ -30,11 +30,11 @@ export function PatientTrendChart({ trends }: PatientTrendChartProps) {
   }
 
   return (
-    <section className="bg-white p-10 rounded-[32px] border border-stone-100 shadow-sm relative overflow-hidden group">
+    <section className="bg-white p-4 sm:p-8 lg:p-10 rounded-2xl sm:rounded-[32px] border border-stone-100 shadow-sm relative overflow-hidden group">
       {/* Background Decorative Gradient */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors duration-1000"></div>
 
-      <div className="flex justify-between items-start mb-10 relative z-10">
+      <div className="flex justify-between items-start mb-6 sm:mb-10 relative z-10">
         <div>
           <h3 className="text-xl font-headline font-black text-on-surface tracking-tight">
             Tren Intensitas Gejala
@@ -48,7 +48,7 @@ export function PatientTrendChart({ trends }: PatientTrendChartProps) {
         </div>
       </div>
 
-      <div className="h-48 flex items-end justify-between gap-6 px-4 relative z-10">
+      <div className="h-48 flex items-end justify-between gap-2 sm:gap-6 px-0 sm:px-4 relative z-10">
         {trends.map((col, idx) => {
           // Max possible sum is 20 (5 * 4)
           const scale = 100 / 20 
@@ -90,7 +90,7 @@ export function PatientTrendChart({ trends }: PatientTrendChartProps) {
       </div>
 
       {/* Legend - Detailed */}
-      <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-stone-100 pt-8 relative z-10">
+      <div className="mt-6 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-stone-100 pt-6 sm:pt-8 relative z-10">
         <div className="flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 bg-teal-400 rounded-full" />
           <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Mual</span>

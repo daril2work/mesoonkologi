@@ -10,6 +10,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
   PRIVACY_POLICY: '/privacy',
+  DEACTIVATED: '/deactivated',
 
   // Patient
   PATIENT_DASHBOARD: '/patient/dashboard',

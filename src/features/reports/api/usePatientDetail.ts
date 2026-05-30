@@ -23,6 +23,13 @@ export interface PatientDetailData {
     value: number
     unit: string
   }[]
+  latestQol?: {
+    mobility?: number
+    selfCare?: number
+    usualActivities?: number
+    painDiscomfort?: number
+    anxietyDepression?: number
+  } | null
   trends: {
     date: string
     mual: number
@@ -32,6 +39,7 @@ export interface PatientDetailData {
     qolScore: number
   }[]
   latestReportId?: string
+  latestReportDate?: string
   isCritical?: boolean
   escalationStatus: 'none' | 'escalated' | 'resolved'
   doctorNotes?: string
@@ -47,6 +55,16 @@ export interface PatientDetailData {
   }
   qolScore?: number
   isQolActive?: boolean
+  isActive?: boolean
+  statusReason?: string | null
+  deactivatedAt?: string | null
+  reportsHistory?: {
+    id: string
+    createdAt: string
+    isSentinelAlert: boolean
+    escalationStatus: 'none' | 'escalated' | 'resolved'
+    status: string
+  }[]
 }
 
 export function usePatientDetail(patientId?: string, reportId?: string) {
@@ -58,19 +76,19 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
       // 1. Fetch Profile (Limit columns for security)
       const { data: profile, error: pError } = await supabase
         .from('profiles')
-        .select('id, full_name, cancer_site, current_cycle, age, weight_kg, height_cm, is_qol_active')
+        .select('id, full_name, cancer_site, current_cycle, age, weight_kg, height_cm, is_qol_active, is_active, status_reason, deactivated_at')
         .eq('id', patientId)
         .single()
 
       if (pError) throw pError
 
-      // 2. Fetch Reports (last 5)
+      // 2. Fetch Reports (last 15)
       const { data: reports, error: rError } = await supabase
         .from('symptom_reports')
         .select('*, escalation_status, doctor_notes')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(15)
 
       if (rError) throw rError
 
@@ -108,9 +126,13 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
         cycleInfo: `Siklus ${profile.current_cycle} / 8`,
         currentCycle: profile.current_cycle || 1,
         isQolActive: profile.is_qol_active ?? false,
+        isActive: profile.is_active ?? true,
+        statusReason: profile.status_reason || null,
+        deactivatedAt: profile.deactivated_at || null,
         latestSymptoms: mapSymptomDetail(symptoms),
         latestDietary: mapDietaryDetail(symptoms),
-        trends: [...reports].reverse().map(r => ({
+        latestQol: symptoms.qol || null,
+        trends: [...reports].slice(0, 5).reverse().map(r => ({
           date: new Date(r.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }),
           mual: r.symptoms[SYMPTOM_KEYS.NAUSEA] || 0,
           nyeri: r.symptoms[SYMPTOM_KEYS.PAIN] || 0,
@@ -119,6 +141,7 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
           qolScore: r.qol_score || 0
         })),
         latestReportId: latest?.id,
+        latestReportDate: latest?.created_at,
         isCritical: latest?.is_sentinel_alert,
         escalationStatus: latest?.escalation_status || 'none',
         doctorNotes: latest?.doctor_notes,
@@ -132,7 +155,14 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
           temperature: latest?.temperature,
           spo2: latest?.spo2,
         },
-        qolScore: latest?.qol_score
+        qolScore: latest?.qol_score,
+        reportsHistory: reports.map(r => ({
+          id: r.id,
+          createdAt: r.created_at,
+          isSentinelAlert: r.is_sentinel_alert,
+          escalationStatus: r.escalation_status || 'none',
+          status: r.status
+        }))
       } as PatientDetailData
     },
     enabled: !!patientId

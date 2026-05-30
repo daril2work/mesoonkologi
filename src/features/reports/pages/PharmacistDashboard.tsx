@@ -45,14 +45,14 @@ export default function PharmacistDashboard() {
 
   return (
     <PharmacistLayout>
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         {/* HEADER SECTION */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
           <div>
-            <h2 className="headline-font text-3xl font-extrabold text-on-surface mb-2">Antrean Laporan</h2>
-            <p className="text-on-surface-variant font-medium">Tinjau laporan harian pasien dan berikan respon klinis.</p>
+            <h2 className="headline-font text-2xl sm:text-3xl font-extrabold text-on-surface mb-2">Antrean Laporan</h2>
+            <p className="text-on-surface-variant text-sm font-medium">Tinjau laporan harian pasien dan berikan respon klinis.</p>
           </div>
-          <div className="flex gap-3 relative">
+          <div className="flex gap-3 relative w-full sm:w-auto justify-end">
             <div className="relative">
               <button 
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -137,7 +137,8 @@ export default function PharmacistDashboard() {
             </div>
             
             <div className="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse">
+              {/* DESKTOP TABLE */}
+              <table className="w-full text-left border-collapse hidden md:table">
                 <thead>
                   <tr className="bg-surface-container-low/50">
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-tight">Nama Pasien</th>
@@ -167,7 +168,7 @@ export default function PharmacistDashboard() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center font-bold text-primary text-xs border border-primary/10 overflow-hidden">
-                                  {report.patient.fullName.charAt(0)}
+                                   {report.patient.fullName.charAt(0)}
                               </div>
                               <span className="font-bold text-sm text-on-surface">{report.patient.fullName}</span>
                             </div>
@@ -204,6 +205,71 @@ export default function PharmacistDashboard() {
                   )}
                 </tbody>
               </table>
+
+              {/* MOBILE CARD LIST (OPSI A) */}
+              <div className="block md:hidden divide-y divide-stone-100">
+                {isLoading ? (
+                  <div className="p-6 text-center animate-pulse text-stone-400 font-bold">Memuat data...</div>
+                ) : minorReports.length === 0 ? (
+                  <div className="p-8 text-center text-stone-400 font-bold">Belum ada laporan rutin.</div>
+                ) : (
+                  minorReports.map((report) => {
+                    const mainSymptomKey = Object.entries(report.symptoms)
+                      .filter(([key]) => (SYMPTOM_KEYS as string[]).includes(key))
+                      .find(([, v]) => (v as number) > 0)?.[0] ?? ''
+                    
+                    const schemaItem = REPORT_SCHEMA.find(i => i.key === mainSymptomKey)
+                    const mainSymptomLabel = schemaItem ? schemaItem.label.toLowerCase() : 'Keluhan Ringan'
+
+                    return (
+                      <div key={report.id} className="p-4 hover:bg-stone-50/50 transition-colors flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center font-bold text-primary text-xs border border-primary/10 overflow-hidden">
+                              {report.patient.fullName.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-on-surface">{report.patient.fullName}</p>
+                              <p className="text-[10px] text-stone-400 font-medium">
+                                {formatDistanceToNow(new Date(report.createdAt), { addSuffix: true, locale: id })}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-xs bg-surface-container-low px-2.5 py-1 rounded-full font-semibold">
+                            Siklus {report.patient.currentCycle ?? 1}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between bg-stone-50/60 p-2.5 rounded-xl border border-stone-100">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Gejala Utama</span>
+                            <span className="text-xs text-on-surface-variant font-bold capitalize">{mainSymptomLabel}</span>
+                          </div>
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Status</span>
+                            <span className="flex items-center gap-1.5 text-primary text-xs font-bold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                              {report.gradeAuto === 'yellow' ? 'Observasi' : 'Ringan'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                          <Link
+                            to={ROUTES.PHARMA_PATIENT_DETAIL
+                              .replace(':id', report.patient.id)
+                              .replace(':reportId?', report.id)}
+                            className="text-primary hover:bg-primary-container px-4 py-2 rounded-xl text-xs font-bold transition-all border border-primary/10 w-full text-center bg-white shadow-sm"
+                          >
+                            Tinjau Detail
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+
               <div className="p-6 bg-surface-container-lowest border-t border-stone-100 flex items-center justify-center">
                 <button className="text-stone-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:text-primary transition-colors">
                   Lihat Semua Antrean Rutin
@@ -216,10 +282,10 @@ export default function PharmacistDashboard() {
 
         {/* QUOTE / STATS SECTION */}
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-primary-container/30 p-8 rounded-lg relative overflow-hidden flex items-center">
+          <div className="lg:col-span-2 bg-primary-container/30 p-6 sm:p-8 rounded-lg relative overflow-hidden flex items-center">
             <div className="relative z-10">
-              <p className="headline-font font-bold text-primary text-xl mb-2">Tips Respon Empati</p>
-              <p className="text-on-primary-container text-sm leading-relaxed max-w-lg italic">
+              <p className="headline-font font-bold text-primary text-lg sm:text-xl mb-2">Tips Respon Empati</p>
+              <p className="text-on-primary-container text-xs sm:text-sm leading-relaxed max-w-lg italic">
                 {majorReports.length > 0 
                   ? `"${majorReports[0].patient.fullName.split(' ')[0]} sedang di siklus kritis. Pastikan memberikan edukasi tentang hidrasi dan penggunaan antiemetik sesuai jadwal."`
                   : `"Semua laporan rutin terpantau stabil. Tetap berikan dukungan dan apresiasi atas kedisiplinan pasien dalam melapor hari ini."`
@@ -228,7 +294,7 @@ export default function PharmacistDashboard() {
             </div>
             <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] text-primary/10 rotate-12">volunteer_activism</span>
           </div>
-          <div className="bg-surface-container-highest p-8 rounded-lg flex flex-col justify-center text-center">
+          <div className="bg-surface-container-highest p-6 sm:p-8 rounded-lg flex flex-col justify-center text-center">
             <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">Statistik Hari Ini</p>
             <div className="flex justify-around items-center">
               <div>

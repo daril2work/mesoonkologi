@@ -15,13 +15,13 @@ interface SymptomTrendChartProps {
 
 export default function SymptomTrendChart({ trends }: SymptomTrendChartProps) {
   return (
-    <section className="bg-white p-10 rounded-[48px] border border-clinical-border shadow-clinical hover:shadow-clinical-lg hover:border-clinical-teal/20 transition-all group relative overflow-hidden bg-[radial-gradient(#f1eeec_1.5px,transparent_1.5px)] [background-size:24px_24px]">
-      <div className="flex items-center justify-between mb-8 relative z-10">
+    <section className="bg-white p-4 sm:p-10 rounded-3xl sm:rounded-[48px] border border-clinical-border shadow-clinical hover:shadow-clinical-lg hover:border-clinical-teal/20 transition-all group relative overflow-hidden bg-[radial-gradient(#f1eeec_1.5px,transparent_1.5px)] [background-size:24px_24px]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 relative z-10">
         <div>
-          <h2 className="font-display text-3xl font-extrabold text-clinical-text m-0 tracking-tight">Analisis Tren Klinis</h2>
-          <p className="text-base font-bold text-clinical-text-soft mt-2 tracking-tight">Visualisasi fluktuasi gejala utama dalam 5 periode laporan terakhir.</p>
+          <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-clinical-text m-0 tracking-tight">Analisis Tren Klinis</h2>
+          <p className="text-sm sm:text-base font-bold text-clinical-text-soft mt-2 tracking-tight">Visualisasi fluktuasi gejala utama dalam 5 periode laporan terakhir.</p>
         </div>
-        <div className="flex items-center gap-6 px-6 py-3 bg-white/50 rounded-2xl border border-clinical-border">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 px-4 sm:px-6 py-2 sm:py-3 bg-white/50 rounded-2xl border border-clinical-border self-start lg:self-auto">
           {[
             { key: 'mual', color: 'bg-clinical-danger', label: 'Mual' },
             { key: 'nyeri', color: 'bg-clinical-warning', label: 'Nyeri' },

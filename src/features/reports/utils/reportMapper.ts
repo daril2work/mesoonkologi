@@ -20,6 +20,8 @@ interface SupabaseProfileRow {
   phone_number?: string | null
   current_cycle: number | null
   cancer_site: string | null
+  is_active?: boolean | null
+  status_reason?: string | null
   symptom_reports: SupabaseSymptomReport[] | null
 }
 
@@ -45,7 +47,9 @@ export function mapPatientDirectoryRow(row: SupabaseProfileRow): PatientDirector
     currentCycle: row.current_cycle ?? 1,
     lastReportDate: lastReport?.created_at ?? null,
     overallStatus: status,
-    cancerSite: row.cancer_site
+    cancerSite: row.cancer_site,
+    isActive: row.is_active ?? true,
+    statusReason: row.status_reason || null
   }
 }
 
@@ -54,7 +58,7 @@ import { SYMPTOM_KEYS as ALL_CLINICAL_SYMPTOMS, REPORT_SCHEMA } from '../constan
 /**
  * Maps raw symptoms object to the UI structure used in Patient Detail
  */
-export function mapSymptomDetail(symptoms: Record<string, number>) {
+export function mapSymptomDetail(symptoms: Record<string, any>) {
   // Core symptoms that we always want to show
   const coreKeys = [
     UI_SYMPTOM_KEYS.NAUSEA,
@@ -92,6 +96,7 @@ export function mapSymptomDetail(symptoms: Record<string, number>) {
     .filter(([key, val]) => 
       !coreKeys.includes(key as any) && 
       (ALL_CLINICAL_SYMPTOMS as readonly string[]).includes(key) && 
+      typeof val === 'number' &&
       val > 0
     )
     .map(([key, val]) => ({
@@ -99,6 +104,16 @@ export function mapSymptomDetail(symptoms: Record<string, number>) {
       value: val,
       status: getSymptomStatus(val)
     }))
+
+  // Tambahkan gejala kustom jika dilaporkan oleh pasien
+  if (symptoms.otherSymptomName && typeof symptoms.otherSymptomName === 'string' && symptoms.otherSymptomName.trim() !== '') {
+    const otherGrade = typeof symptoms.otherSymptomGrade === 'number' ? symptoms.otherSymptomGrade : 0
+    additionalSymptoms.push({
+      label: `${symptoms.otherSymptomName} (Gejala Lain)`,
+      value: otherGrade,
+      status: getSymptomStatus(otherGrade)
+    })
+  }
 
   return [...coreSymptoms, ...additionalSymptoms]
 }
@@ -116,10 +131,22 @@ export function mapDietaryDetail(symptoms: Record<string, number>) {
   }))
 }
 
+import type { EducationMaterial } from '../types'
+
 /**
  * Maps an education material row to EducationMaterial type
  */
-export function mapEducationRow(row: any) {
+export function mapEducationRow(row: {
+  id: string
+  title: string
+  description: string | null
+  content: string | null
+  category: string
+  image_url: string | null
+  video_url: string | null
+  is_featured: boolean
+  created_at: string
+}): EducationMaterial {
   return {
     id: row.id,
     title: row.title,

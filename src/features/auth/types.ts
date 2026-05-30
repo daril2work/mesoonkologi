@@ -10,6 +10,7 @@ export interface AuthUser {
   role: UserRole
   fullName: string | null
   createdAt: string
+  isActive?: boolean
 }
 
 export interface PatientProfile {

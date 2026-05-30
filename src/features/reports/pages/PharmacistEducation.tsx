@@ -97,15 +97,15 @@ export default function PharmacistEducation() {
     <PharmacistLayout>
       <div className="min-h-screen">
         {/* Top Bar Section */}
-        <header className="px-10 py-8 flex justify-between items-center border-b border-surface-container bg-white/80 backdrop-blur-xl sticky top-0 z-30">
+        <header className="px-4 sm:px-8 lg:px-10 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-container bg-white/80 backdrop-blur-xl sticky top-0 z-30">
           <div>
-            <h2 className="text-3xl headline-font font-black text-on-surface tracking-tight">Manajemen Edukasi</h2>
-            <p className="text-on-surface-variant text-sm mt-1 font-medium">Kurasi materi untuk mendukung perjalanan pemulihan pasien.</p>
+            <h2 className="text-2xl sm:text-3xl headline-font font-black text-on-surface tracking-tight">Manajemen Edukasi</h2>
+            <p className="text-on-surface-variant text-xs sm:text-sm mt-1 font-medium">Kurasi materi untuk mendukung perjalanan pemulihan pasien.</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 bg-primary text-on-primary px-8 py-3.5 rounded-2xl font-black text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95"
+              className="flex items-center justify-center gap-2 bg-primary text-on-primary px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95 w-full sm:w-auto font-body"
             >
               <span className="material-symbols-outlined text-[22px]">upload</span>
               Upload Materi
@@ -113,7 +113,7 @@ export default function PharmacistEducation() {
           </div>
         </header>
 
-        <section className="px-10 py-10 max-w-7xl mx-auto">
+        <section className="p-4 sm:p-8 lg:p-10 max-w-7xl mx-auto">
           {/* Filter & Stats Bar */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
             <div className="md:col-span-8 bg-surface-container-low p-6 rounded-[32px] flex flex-col sm:flex-row items-center justify-between gap-6 border border-stone-100 shadow-sm">
@@ -165,26 +165,26 @@ export default function PharmacistEducation() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {/* Featured Card */}
               {featuredMaterial && searchTerm === '' && selectedCategory === 'Semua' && (
-                <div className="md:col-span-2 bg-primary rounded-[48px] p-12 flex flex-col lg:flex-row items-center gap-12 overflow-hidden relative group shadow-2xl shadow-primary/20">
+                <div className="md:col-span-2 bg-primary rounded-[32px] sm:rounded-[48px] p-6 sm:p-10 lg:p-12 flex flex-col lg:flex-row items-center gap-6 sm:gap-10 lg:gap-12 overflow-hidden relative group shadow-2xl shadow-primary/20">
                   <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/leaf.png')]"></div>
-                  <div className="flex-1 z-10 relative">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full mb-8">
-                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Materi Unggulan</span>
+                  <div className="flex-1 z-10 relative w-full">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full mb-4 sm:mb-8">
+                      <span className="material-symbols-outlined text-xs sm:text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Materi Unggulan</span>
                     </div>
-                    <h3 className="text-5xl headline-font font-black text-white mb-6 leading-tight tracking-tight">{featuredMaterial.title}</h3>
-                    <p className="text-white/70 text-lg mb-10 max-w-xl font-medium leading-relaxed">{featuredMaterial.description || 'Materi pilihan terbaik untuk mendukung pemulihan pasien.'}</p>
-                    <div className="flex gap-4">
-                      <button className="bg-white text-primary px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 shadow-xl">Edit Konten</button>
-                      <button className="bg-white/10 border border-white/20 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">Statistik</button>
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl headline-font font-black text-white mb-4 leading-tight tracking-tight">{featuredMaterial.title}</h3>
+                    <p className="text-white/75 text-xs sm:text-sm md:text-base lg:text-lg mb-6 sm:mb-8 md:mb-10 max-w-xl font-medium leading-relaxed">{featuredMaterial.description || 'Materi pilihan terbaik untuk mendukung pemulihan pasien.'}</p>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                      <button className="bg-white text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 shadow-xl w-full sm:w-auto text-center font-body">Edit Konten</button>
+                      <button className="bg-white/10 border border-white/20 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95 w-full sm:w-auto text-center font-body">Statistik</button>
                     </div>
                   </div>
                   <div 
-                    className="w-64 h-64 lg:w-96 lg:h-96 bg-white/5 backdrop-blur-3xl rounded-[64px] flex items-center justify-center p-8 border border-white/10 z-10 transition-transform duration-1000 group-hover:rotate-3 shrink-0 relative cursor-pointer"
+                    className="w-full max-w-[200px] aspect-square sm:max-w-[240px] lg:max-w-none lg:w-72 lg:h-72 xl:w-96 xl:h-96 bg-white/5 backdrop-blur-3xl rounded-[32px] sm:rounded-[64px] flex items-center justify-center p-4 sm:p-8 border border-white/10 z-10 transition-transform duration-1000 group-hover:rotate-3 shrink-0 relative cursor-pointer shadow-lg"
                     onClick={() => featuredMaterial.videoUrl && window.open(featuredMaterial.videoUrl, '_blank')}
                   >
                     <img 
-                        className="w-full h-full object-cover rounded-[48px] shadow-2xl border-4 border-white/10" 
+                        className="w-full h-full object-cover rounded-[24px] sm:rounded-[48px] shadow-2xl border-4 border-white/10" 
                         src={featuredMaterial.imageUrl || DEFAULT_FEATURED_IMG} 
                         alt="Featured" 
                     />

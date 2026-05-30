@@ -47,15 +47,18 @@ export default function PharmacistChat() {
 
   return (
     <PharmacistLayout>
-      <div className="h-[calc(100vh-64px)] flex overflow-hidden">
+      <div className="h-[calc(100vh-64px)] flex overflow-hidden bg-white">
         {/* LEFT: ROOM LIST */}
-        <aside className="w-80 bg-stone-50 border-r border-stone-100 flex flex-col">
-          <div className="p-6 border-b border-stone-100 bg-white">
-            <h3 className="font-bold text-lg headline-font">Pusat Pesan</h3>
+        <aside className={clsx(
+          "w-full md:w-80 bg-stone-50 border-r border-stone-100 flex flex-col shrink-0 transition-all duration-300",
+          selectedPatientId !== null ? "hidden md:flex" : "flex"
+        )}>
+          <div className="p-4 md:p-6 border-b border-stone-100 bg-white">
+            <h3 className="font-bold text-base md:text-lg headline-font">Pusat Pesan</h3>
             <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mt-1">Konsultasi Pasien</p>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-2">
             {isLoadingRooms ? (
               <div className="py-10 text-center animate-pulse text-stone-300 font-bold uppercase text-[10px] tracking-widest">Memuat Chat...</div>
             ) : chatRooms?.length === 0 ? (
@@ -87,30 +90,42 @@ export default function PharmacistChat() {
         </aside>
 
         {/* RIGHT: CHAT WINDOW */}
-        <main className="flex-1 flex flex-col bg-white">
+        <main className={clsx(
+          "flex-1 flex flex-col bg-white transition-all duration-300",
+          selectedPatientId === null ? "hidden md:flex" : "flex"
+        )}>
           {selectedPatientId ? (
             <>
               {/* Chat Header */}
-              <header className="px-8 py-4 border-b border-stone-100 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center font-bold text-stone-400 border border-stone-200">
+              <header className="px-4 md:px-8 py-4 border-b border-stone-100 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                  {/* Back Button on Mobile */}
+                  <button
+                    onClick={() => setSelectedPatientId(null)}
+                    className="md:hidden p-1 text-stone-500 hover:text-primary active:scale-95 transition-all flex items-center justify-center shrink-0"
+                    title="Kembali ke Daftar Pesan"
+                  >
+                    <span className="material-symbols-outlined text-2xl">arrow_back</span>
+                  </button>
+
+                  <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center font-bold text-stone-400 border border-stone-200 shrink-0">
                     {selectedPatient?.full_name?.charAt(0) || 'P'}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-on-surface">{selectedPatient?.full_name || 'Pasien'}</h4>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm md:text-base text-on-surface truncate">{selectedPatient?.full_name || 'Pasien'}</h4>
                     <div className="flex items-center gap-1.5 text-[10px] font-black text-teal-600 uppercase tracking-widest">
                       <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
                       Terhubung
                     </div>
                   </div>
                 </div>
-                <button className="text-stone-400 hover:text-on-surface transition-colors">
+                <button className="text-stone-400 hover:text-on-surface transition-colors shrink-0">
                   <span className="material-symbols-outlined">more_vert</span>
                 </button>
               </header>
 
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-stone-50/30">
+              <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 bg-stone-50/30">
                 {isLoadingMessages ? (
                   <div className="flex items-center justify-center h-full text-stone-300 font-bold uppercase text-[10px] tracking-widest animate-pulse">Menyelaraskan Pesan...</div>
                 ) : (
@@ -118,11 +133,11 @@ export default function PharmacistChat() {
                     const isMe = msg.senderId === user?.id
                     return (
                       <div key={msg.id} className={clsx(
-                        "max-w-[70%] flex flex-col gap-1.5",
+                        "max-w-[85%] md:max-w-[70%] flex flex-col gap-1.5",
                         isMe ? "ml-auto items-end" : "mr-auto items-start"
                       )}>
                         <div className={clsx(
-                          "px-6 py-4 rounded-[28px] text-sm leading-relaxed shadow-sm",
+                          "px-4 md:px-6 py-3 md:py-4 rounded-[24px] md:rounded-[28px] text-sm leading-relaxed shadow-sm",
                           isMe 
                             ? "bg-primary text-on-primary rounded-tr-none" 
                             : "bg-white text-on-surface rounded-tl-none border border-stone-100"
@@ -140,19 +155,19 @@ export default function PharmacistChat() {
               </div>
 
               {/* Input Area */}
-              <div className="p-8 border-t border-stone-100">
-                <form onSubmit={handleSend} className="flex gap-4">
+              <div className="p-4 md:p-8 border-t border-stone-100 bg-white">
+                <form onSubmit={handleSend} className="flex gap-3 md:gap-4">
                   <input
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Tulis saran klinis atau balas pesan pasien..."
-                    className="flex-1 bg-stone-100 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="Tulis saran klinis..."
+                    className="flex-1 bg-stone-100 border-none rounded-2xl px-4 md:px-6 py-3 md:py-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
                   <button
                     type="submit"
                     disabled={sendMessage.isPending || !inputText.trim()}
-                    className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center hover:opacity-90 transition-all active:scale-95 disabled:opacity-40"
+                    className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center hover:opacity-90 transition-all active:scale-95 disabled:opacity-40 shrink-0"
                   >
                     <span className="material-symbols-outlined">send</span>
                   </button>
@@ -160,10 +175,10 @@ export default function PharmacistChat() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-20 text-center text-stone-300">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-20 text-center text-stone-300">
               <span className="material-symbols-outlined text-6xl mb-6 opacity-20">forum</span>
-              <h3 className="font-bold text-xl text-stone-400 mb-2">Pilih Percakapan</h3>
-              <p className="text-sm max-w-xs font-medium">Pilih pasien dari daftar di samping untuk memulai konsultasi klinis.</p>
+              <h3 className="font-bold text-lg md:text-xl text-stone-400 mb-2">Pilih Percakapan</h3>
+              <p className="text-xs md:text-sm max-w-xs font-medium">Pilih pasien dari daftar di samping untuk memulai konsultasi klinis.</p>
             </div>
           )}
         </main>

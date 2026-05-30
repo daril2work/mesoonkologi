@@ -15,11 +15,33 @@ serve(async (req: Request) => {
   try {
     const { target, message, schedule } = await req.json()
     // @ts-ignore: Deno context
-    const token = Deno.env.get('FONNTE_TOKEN')
+    let token = Deno.env.get('FONNTE_TOKEN')
+
+    if (!token) {
+      // @ts-ignore: Deno context
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')
+      // @ts-ignore: Deno context
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+      if (supabaseUrl && supabaseKey) {
+        // @ts-ignore: Deno import
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        const { data, error } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('key', 'fonnte_token')
+          .single()
+        
+        if (!error && data?.value) {
+          token = data.value
+        }
+      }
+    }
 
     if (!token) {
       return new Response(
-        JSON.stringify({ error: 'FONNTE_TOKEN not configured in Edge Function' }),
+        JSON.stringify({ error: 'FONNTE_TOKEN not configured in Edge Function or Database' }),
         { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }

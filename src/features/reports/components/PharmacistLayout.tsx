@@ -5,6 +5,7 @@ import { clsx } from 'clsx'
 import { ROUTES } from '@configs/app.config'
 import { useNotifications } from '../hooks/useNotifications'
 import { supabase } from '@lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface PharmacistLayoutProps {
   children: React.ReactNode
@@ -15,8 +16,10 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [isNotifOpen, setIsNotifOpen] = React.useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const currentSearch = searchParams.get('search') ?? ''
+  const queryClient = useQueryClient()
   
   // Destructure all needed counts from the hook
   const { unreadCount, reportsCount, messagesCount, queueIds } = useNotifications()
@@ -30,7 +33,8 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
       }
     })
     localStorage.setItem('read_pharma_reports', JSON.stringify(readReportIds))
-    window.location.reload()
+    // Trigger re-render of useNotifications by invalidating the queue it depends on
+    queryClient.invalidateQueries({ queryKey: ['pharmacistQueue'] })
   }
 
   const handleMarkMessagesRead = async (e: React.MouseEvent) => {
@@ -41,6 +45,9 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
       .update({ is_read: true })
       .eq('receiver_id', user.id)
       .eq('is_read', false)
+      
+    // Refetch the unread messages count implicitly
+    queryClient.invalidateQueries({ queryKey: ['chatMessages'] })
   }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,9 +69,20 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen font-body antialiased">
+      {/* SIDEBAR BACKDROP FOR MOBILE */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
-      <aside className="h-screen w-64 fixed left-0 top-0 bg-stone-50 border-r border-stone-100 font-headline flex flex-col py-6 z-50 overflow-y-auto">
-        <div className="px-6 mb-10">
+      <aside className={clsx(
+        "h-screen w-64 fixed left-0 top-0 bg-stone-50 border-r border-stone-100 font-headline flex flex-col py-6 z-50 overflow-y-auto transition-transform duration-300 ease-in-out",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
+        <div className="px-6 mb-10 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
               <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>medical_services</span>
@@ -74,6 +92,13 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
               <p className="text-[10px] uppercase tracking-widest text-stone-400 font-semibold">Clinical Portal</p>
             </div>
           </div>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-1 text-stone-400 hover:text-teal-600 active:scale-95 transition-all flex items-center justify-center"
+            title="Close Menu"
+          >
+            <span className="material-symbols-outlined text-2xl">close</span>
+          </button>
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
@@ -83,6 +108,7 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setIsSidebarOpen(false)}
                 className={clsx(
                   "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300",
                   isActive 
@@ -100,13 +126,17 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
         <div className="px-3 border-t border-stone-100 pt-4">
           <Link 
             to={ROUTES.PHARMA_HELP}
+            onClick={() => setIsSidebarOpen(false)}
             className="w-full flex items-center gap-3 px-4 py-3 text-stone-500 hover:text-teal-600 hover:bg-stone-100 transition-colors duration-300 rounded-lg text-left"
           >
             <span className="material-symbols-outlined">help_outline</span>
             <span className="text-sm">Bantuan</span>
           </Link>
           <button 
-            onClick={logout}
+            onClick={() => {
+              setIsSidebarOpen(false)
+              logout()
+            }}
             className="w-full flex items-center gap-3 px-4 py-3 text-stone-500 hover:text-teal-600 hover:bg-stone-100 transition-colors duration-300 rounded-lg text-left"
           >
             <span className="material-symbols-outlined">logout</span>
@@ -116,22 +146,31 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className="ml-64 flex flex-col min-h-screen">
+      <div className="lg:ml-64 ml-0 flex flex-col min-h-screen">
         {/* HEADER */}
-        <header className="h-16 border-b border-stone-100 bg-white/80 backdrop-blur-xl sticky top-0 z-40 px-8 flex items-center justify-between">
-          <div className="flex items-center bg-stone-100 rounded-full px-4 py-1.5 w-96">
-            <span className="material-symbols-outlined text-stone-400 text-lg">search</span>
-            <input 
-              value={currentSearch}
-              onChange={handleSearchChange}
-              className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-stone-400 outline-none" 
-              placeholder="Cari nama pasien..." 
-              type="text"
-            />
+        <header className="h-16 border-b border-stone-100 bg-white/80 backdrop-blur-xl sticky top-0 z-40 px-4 lg:px-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1 lg:flex-none">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-1 text-stone-600 hover:text-teal-600 active:scale-95 transition-all flex items-center justify-center"
+              title="Open Menu"
+            >
+              <span className="material-symbols-outlined text-2xl">menu</span>
+            </button>
+            <div className="flex items-center bg-stone-100 rounded-full px-4 py-1.5 w-full max-w-[150px] sm:max-w-xs md:w-96">
+              <span className="material-symbols-outlined text-stone-400 text-lg">search</span>
+              <input 
+                value={currentSearch}
+                onChange={handleSearchChange}
+                className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-stone-400 outline-none" 
+                placeholder="Cari nama pasien..." 
+                type="text"
+              />
+            </div>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 lg:gap-6">
+            <div className="flex items-center gap-2 lg:gap-4">
               <div className="relative">
                 <button 
                   onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -213,7 +252,7 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
             <div className="h-8 w-[1px] bg-stone-200"></div>
             
             <div className="flex items-center gap-3">
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <p className="text-xs font-bold text-teal-700">Apoteker</p>
                 <p className="text-[10px] text-stone-500">{user?.fullName ?? 'Sari'}</p>
               </div>

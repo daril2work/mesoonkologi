@@ -91,7 +91,7 @@ export default function PharmacistHelp() {
 
   return (
     <PharmacistLayout>
-      <div className="p-10 max-w-5xl mx-auto pb-32">
+      <div className="p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto pb-32">
         {selectedDoc ? (
           /* DETAIL VIEW */
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -103,23 +103,23 @@ export default function PharmacistHelp() {
               <span className="text-xs font-black uppercase tracking-widest">Kembali ke Pusat Bantuan</span>
             </button>
 
-            <header className="flex items-start gap-8 mb-12">
+            <header className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-8 mb-8 sm:mb-12">
               <div className="w-20 h-20 rounded-[28px] bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
                 <span className="material-symbols-outlined text-4xl">{selectedDoc.icon}</span>
               </div>
               <div>
-                <h2 className="headline-font text-4xl font-black text-on-surface mb-2">{selectedDoc.title}</h2>
-                <p className="text-on-surface-variant text-lg font-medium">{selectedDoc.shortDesc}</p>
+                <h2 className="headline-font text-3xl sm:text-4xl font-black text-on-surface mb-2">{selectedDoc.title}</h2>
+                <p className="text-on-surface-variant text-base sm:text-lg font-medium">{selectedDoc.shortDesc}</p>
               </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
               <div className="lg:col-span-2 space-y-8">
                 {selectedDoc.content.map((p, i) => (
                   <p key={i} className="text-stone-600 leading-relaxed text-lg font-medium">{p}</p>
                 ))}
                 
-                <div className="p-10 bg-stone-50 rounded-[40px] border border-stone-100 mt-12">
+                <div className="p-5 sm:p-10 bg-stone-50 rounded-[24px] sm:rounded-[40px] border border-stone-100 mt-8 sm:mt-12">
                   <h4 className="font-bold text-lg mb-6 flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">lightbulb</span>
                     Panduan Cepat
@@ -138,12 +138,12 @@ export default function PharmacistHelp() {
               </div>
 
               <aside className="space-y-6">
-                <div className="bg-primary text-on-primary p-8 rounded-[32px] shadow-lg shadow-primary/20">
+                <div className="bg-primary text-on-primary p-6 sm:p-8 rounded-2xl sm:rounded-[32px] shadow-lg shadow-primary/20">
                   <h4 className="font-bold mb-3">Butuh bantuan lain?</h4>
                   <p className="text-xs opacity-80 leading-relaxed mb-6">Hubungi tim IT SIMRS atau Administrator MESO jika Anda mengalami kendala teknis sistem.</p>
                   <button className="w-full py-3 bg-white/20 hover:bg-white/30 rounded-xl font-bold text-xs transition-colors">Hubungi Support</button>
                 </div>
-                <div className="bg-white p-8 rounded-[32px] border border-stone-100 shadow-sm">
+                <div className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-[32px] border border-stone-100 shadow-sm">
                   <h4 className="font-bold text-sm mb-4">Topik Terkait</h4>
                   <div className="space-y-2">
                     {docs.filter(d => d.id !== selectedDocId).map(d => (
@@ -164,9 +164,9 @@ export default function PharmacistHelp() {
         ) : (
           /* LIST VIEW */
           <div className="animate-in fade-in duration-500">
-            <header className="mb-12">
-              <h2 className="headline-font text-5xl font-black text-on-surface mb-3 tracking-tight">Pusat Bantuan</h2>
-              <p className="text-on-surface-variant text-xl font-medium">Temukan panduan lengkap pengoperasian portal klinis MESO.</p>
+            <header className="mb-8 sm:mb-12">
+              <h2 className="headline-font text-4xl sm:text-5xl font-black text-on-surface mb-3 tracking-tight">Pusat Bantuan</h2>
+              <p className="text-on-surface-variant text-lg sm:text-xl font-medium">Temukan panduan lengkap pengoperasian portal klinis MESO.</p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -174,13 +174,13 @@ export default function PharmacistHelp() {
                 <button 
                   key={doc.id} 
                   onClick={() => setSelectedDocId(doc.id)}
-                  className="bg-white p-10 rounded-[40px] shadow-sm border border-stone-100 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all text-left group flex flex-col h-full active:scale-95 duration-300"
+                  className="bg-white p-6 sm:p-10 rounded-3xl sm:rounded-[40px] shadow-sm border border-stone-100 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all text-left group flex flex-col h-full active:scale-95 duration-300"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-primary/5 flex items-center justify-center mb-8 text-stone-300 group-hover:text-primary transition-colors border border-stone-100 group-hover:border-primary/10">
+                  <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-primary/5 flex items-center justify-center mb-6 sm:mb-8 text-stone-300 group-hover:text-primary transition-colors border border-stone-100 group-hover:border-primary/10">
                     <span className="material-symbols-outlined text-3xl">{doc.icon}</span>
                   </div>
                   <h3 className="font-extrabold text-2xl mb-4 group-hover:text-primary transition-colors">{doc.title}</h3>
-                  <p className="text-stone-400 font-medium leading-relaxed mb-8 flex-1">{doc.shortDesc}</p>
+                  <p className="text-stone-400 font-medium leading-relaxed mb-6 sm:mb-8 flex-1">{doc.shortDesc}</p>
                   <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
                     Baca Selengkapnya
                     <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -189,12 +189,12 @@ export default function PharmacistHelp() {
               ))}
             </div>
 
-            <section className="mt-20 bg-stone-50 rounded-[48px] p-12 border border-stone-100">
-              <div className="flex items-center gap-4 mb-10">
+            <section className="mt-12 sm:mt-20 bg-stone-50 rounded-3xl sm:rounded-[48px] p-6 sm:p-12 border border-stone-100">
+              <div className="flex items-center gap-4 mb-6 sm:mb-10">
                 <div className="w-1.5 h-8 bg-primary rounded-full"></div>
                 <h3 className="headline-font text-2xl font-black">Pertanyaan Umum (FAQ)</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-12">
                 <div className="space-y-4">
                   <h4 className="font-bold text-lg text-primary">Bagaimana cara menyelesaikan laporan?</h4>
                   <p className="text-sm text-stone-500 leading-relaxed font-medium">Klik laporan di dashboard, tinjau detailnya, berikan intervensi jika perlu, lalu klik "Selesaikan Tanpa Eskalasi" atau "Eskalasi".</p>

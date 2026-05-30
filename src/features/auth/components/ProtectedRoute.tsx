@@ -24,6 +24,11 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />
   }
 
+  // H-06: Akun Nonaktif (Soft Deleted) -> Blokir akses dashboard, redirect ke halaman deaktifasi
+  if (user.isActive === false) {
+    return <Navigate to={ROUTES.DEACTIVATED} replace />
+  }
+
   // H-05: Role tidak sesuai → arahkan ke dashboard default role mereka,
   // BUKAN ke HOME (yang langsung redirect ke LOGIN → potensi infinite loop)
   if (allowedRoles && !allowedRoles.includes(user.role)) {

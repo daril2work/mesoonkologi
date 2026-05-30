@@ -141,7 +141,7 @@ export function EscalationActionPanel({
 
         {/* Active Symptoms Summary */}
         {top3Symptoms.length > 0 && (
-          <div className="bg-white border-2 border-[#b90c55]/20 p-10 rounded-[40px] shadow-sm relative overflow-hidden">
+          <div className="bg-white border-2 border-[#b90c55]/20 p-5 sm:p-10 rounded-3xl sm:rounded-[40px] shadow-sm relative overflow-hidden">
             <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#b90c55]" />
             <h4 className="text-[11px] font-black text-[#b90c55] uppercase tracking-[0.25em] mb-6 flex items-center gap-2">
               <span

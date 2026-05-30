@@ -13,7 +13,7 @@ export function InterventionHistoryPanel({ reportId }: InterventionHistoryPanelP
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-[32px] p-8 border border-stone-100 shadow-sm animate-pulse flex justify-center items-center h-40">
+      <div className="bg-white rounded-2xl sm:rounded-[32px] p-5 sm:p-8 border border-stone-100 shadow-sm animate-pulse flex justify-center items-center h-40">
         <span className="text-xs font-bold text-stone-300 uppercase tracking-widest">Memuat Riwayat...</span>
       </div>
     )
@@ -24,8 +24,8 @@ export function InterventionHistoryPanel({ reportId }: InterventionHistoryPanelP
   }
 
   return (
-    <section className="bg-white rounded-[32px] border border-stone-100 shadow-sm overflow-hidden">
-      <div className="p-8 border-b border-stone-100 bg-surface-container-lowest flex items-center justify-between">
+    <section className="bg-white rounded-2xl sm:rounded-[32px] border border-stone-100 shadow-sm overflow-hidden">
+      <div className="p-5 sm:p-8 border-b border-stone-100 bg-surface-container-lowest flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
             <span className="material-symbols-outlined">clinical_notes</span>
@@ -39,7 +39,7 @@ export function InterventionHistoryPanel({ reportId }: InterventionHistoryPanelP
         </div>
       </div>
       
-      <div className="p-8 space-y-6">
+      <div className="p-5 sm:p-8 space-y-6">
         {interventions.map((intervention, index) => (
           <div key={intervention.id} className="relative pl-6">
             {/* Timeline line */}
