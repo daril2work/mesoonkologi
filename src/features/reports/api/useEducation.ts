@@ -73,16 +73,17 @@ export function useUpdateEducation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string, updates: Partial<EducationMaterial> }) => {
+      const payload: any = {}
+      if (updates.title !== undefined) payload.title = updates.title
+      if (updates.description !== undefined) payload.description = updates.description
+      if (updates.category !== undefined) payload.category = updates.category
+      if (updates.imageUrl !== undefined) payload.image_url = updates.imageUrl
+      if (updates.videoUrl !== undefined) payload.video_url = updates.videoUrl
+      if (updates.isFeatured !== undefined) payload.is_featured = updates.isFeatured
+
       const { data, error } = await supabase
         .from('education_materials')
-        .update({
-          title: updates.title,
-          description: updates.description,
-          category: updates.category,
-          image_url: updates.imageUrl,
-          video_url: updates.videoUrl,
-          is_featured: updates.isFeatured
-        })
+        .update(payload)
         .eq('id', id)
         .select()
         .single()

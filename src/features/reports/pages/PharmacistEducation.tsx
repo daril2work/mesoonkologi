@@ -83,12 +83,22 @@ export default function PharmacistEducation() {
   }
 
   const handleToggleFeatured = (item: any) => {
+    const willBeFeatured = !item.isFeatured;
+
+    // Jika ingin menjadikan ini unggulan, matikan yang unggulan saat ini (jika ada)
+    if (willBeFeatured && featuredMaterial && featuredMaterial.isFeatured && featuredMaterial.id !== item.id) {
+      updateEducation({
+        id: featuredMaterial.id,
+        updates: { isFeatured: false }
+      })
+    }
+
     updateEducation({
       id: item.id,
-      updates: { isFeatured: !item.isFeatured }
+      updates: { isFeatured: willBeFeatured }
     }, {
       onSuccess: () => {
-        toast.success(item.isFeatured ? 'Materi dilepas dari unggulan' : 'Materi dijadikan unggulan')
+        toast.success(willBeFeatured ? 'Materi dijadikan unggulan' : 'Materi dilepas dari unggulan')
       }
     })
   }
@@ -168,8 +178,15 @@ export default function PharmacistEducation() {
                 <div className="md:col-span-2 bg-primary rounded-[32px] sm:rounded-[48px] p-6 sm:p-10 lg:p-12 flex flex-col lg:flex-row items-center gap-6 sm:gap-10 lg:gap-12 overflow-hidden relative group shadow-2xl shadow-primary/20">
                   <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/leaf.png')]"></div>
                   <div className="flex-1 z-10 relative w-full">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full mb-4 sm:mb-8">
-                      <span className="material-symbols-outlined text-xs sm:text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    <div 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFeatured(featuredMaterial);
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full mb-4 sm:mb-8 cursor-pointer hover:bg-white/20 transition-all active:scale-95"
+                      title="Klik untuk melepas dari unggulan"
+                    >
+                      <span className="material-symbols-outlined text-xs sm:text-sm text-yellow-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Materi Unggulan</span>
                     </div>
                     <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl headline-font font-black text-white mb-4 leading-tight tracking-tight">{featuredMaterial.title}</h3>
