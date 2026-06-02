@@ -36,7 +36,6 @@ export default function PharmacistPatients() {
     const exportData = filteredPatients.map(p => ({
       'ID Pasien': p.id,
       'Nama Lengkap': p.fullName,
-      'Siklus Saat Ini': p.currentCycle,
       'Status Terakhir': p.overallStatus,
       'Tanggal Laporan Terakhir': p.lastReportDate ? format(new Date(p.lastReportDate), 'dd MMMM yyyy', { locale: id }) : '-',
       'Lokasi Kanker': p.cancerSite || '-'
@@ -206,7 +205,6 @@ export default function PharmacistPatients() {
                 <tr className="bg-surface-container-low/50 text-on-surface-variant uppercase text-[10px] tracking-widest font-black border-b border-stone-100">
                   <th className="px-8 py-4">ID Pasien</th>
                   <th className="px-6 py-4">Nama Pasien</th>
-                  <th className="px-6 py-4 text-center">Siklus Ke</th>
                   <th className="px-6 py-4">Laporan Terakhir</th>
                   <th className="px-6 py-4">Status Overall</th>
                   <th className="px-8 py-4 text-right">Aksi</th>
@@ -230,14 +228,6 @@ export default function PharmacistPatients() {
                           </div>
                           <span className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors">{p.fullName}</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-5 text-center">
-                        <span className={clsx(
-                          "px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-widest",
-                          p.overallStatus === 'Butuh Tindakan' ? "bg-tertiary-container text-on-tertiary-container" : "bg-primary-container text-on-primary-container"
-                        )}>
-                          {p.currentCycle} / 8
-                        </span>
                       </td>
                       <td className="px-6 py-5 text-sm text-stone-600 font-medium">
                         {p.lastReportDate ? format(new Date(p.lastReportDate), 'dd MMM yyyy', { locale: id }) : 'Belum melapor'}
@@ -328,12 +318,6 @@ export default function PharmacistPatients() {
                           <p className="text-[10px] font-mono font-bold text-stone-400 tracking-wider">#P-{p.id.slice(0, 6).toUpperCase()}</p>
                         </div>
                       </div>
-                      <span className={clsx(
-                        "px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-widest",
-                        p.overallStatus === 'Butuh Tindakan' ? "bg-tertiary-container text-on-tertiary-container" : "bg-primary-container text-on-primary-container"
-                      )}>
-                        Siklus {p.currentCycle} / 8
-                      </span>
                     </div>
 
                     <div className="flex items-center justify-between bg-stone-50/60 p-2.5 rounded-xl border border-stone-100 text-xs">

@@ -35,7 +35,6 @@ export default function PharmacistDashboard() {
     const exportData = filteredQueue.map(q => ({
       'ID Laporan': q.id,
       'Pasien': q.patient.fullName,
-      'Siklus': q.patient.currentCycle,
       'Status Eskalasi': q.escalationStatus === 'escalated' ? 'Ter-eskalasi' : 'Rutin',
       'Gejala Utama': Object.entries(q.symptoms).find(([, v]) => (v as number) > 0)?.[0] ?? '-',
       'Waktu Lapor': new Date(q.createdAt).toLocaleString('id-ID')
@@ -143,7 +142,6 @@ export default function PharmacistDashboard() {
                   <tr className="bg-surface-container-low/50">
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-tight">Nama Pasien</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-tight">Gejala</th>
-                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-tight">Siklus</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-tight">Waktu</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-tight">Status</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-tight text-right">Aksi</th>
@@ -175,9 +173,6 @@ export default function PharmacistDashboard() {
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-sm text-on-surface-variant font-medium capitalize">{mainSymptomLabel}</span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="text-xs bg-surface-container-low px-2.5 py-1 rounded-full font-semibold">Siklus {report.patient.currentCycle ?? 1}</span>
                           </td>
                           <td className="px-6 py-4 text-sm text-stone-500 font-medium">
                             {formatDistanceToNow(new Date(report.createdAt), { addSuffix: true, locale: id })}
@@ -235,9 +230,6 @@ export default function PharmacistDashboard() {
                               </p>
                             </div>
                           </div>
-                          <span className="text-xs bg-surface-container-low px-2.5 py-1 rounded-full font-semibold">
-                            Siklus {report.patient.currentCycle ?? 1}
-                          </span>
                         </div>
 
                         <div className="flex items-center justify-between bg-stone-50/60 p-2.5 rounded-xl border border-stone-100">

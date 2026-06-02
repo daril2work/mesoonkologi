@@ -28,7 +28,7 @@ export function PatientHeaderCard({
 }: PatientHeaderCardProps) {
   return (
     <section className="bg-surface-container-lowest rounded-2xl p-4 sm:p-8 lg:p-10 shadow-sm border border-stone-100 relative overflow-hidden group">
-      {/* Cycle Badge */}
+      {/* Cycle Badge - Temporarily hidden per client request
       {cycleInfo && isActive && (
         <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
           <div className="bg-primary-container/40 text-primary px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 sm:gap-2 border border-primary/10">
@@ -37,6 +37,7 @@ export function PatientHeaderCard({
           </div>
         </div>
       )}
+      */}
 
       <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-8 pt-8 sm:pt-0">
         {/* Avatar */}

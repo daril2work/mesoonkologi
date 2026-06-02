@@ -87,9 +87,9 @@ export function EscalationActionPanel({
           onClick={() => reportId && setIsModalOpen(true)}
           disabled={escalateReport.isPending || isAlreadyEscalated || !reportId}
           className={clsx(
-            'w-full h-24 rounded-3xl font-display font-black text-lg uppercase tracking-widest',
-            'flex items-center justify-center gap-4 shadow-2xl transition-all active:scale-95',
-            'disabled:opacity-70 disabled:scale-100',
+            'w-full h-24 px-6 sm:px-8 rounded-3xl font-display font-black text-base sm:text-lg uppercase tracking-widest',
+            'flex items-center justify-center gap-3 sm:gap-4 shadow-2xl transition-all active:scale-95',
+            'disabled:opacity-70 disabled:scale-100 relative',
             isAlreadyEscalated
               ? 'bg-stone-100 text-stone-400 border-2 border-dashed border-stone-200'
               : 'bg-[#b90c55] text-white shadow-[#b90c55]/30 hover:shadow-[#b90c55]/50'
@@ -97,18 +97,22 @@ export function EscalationActionPanel({
         >
           {isAlreadyEscalated ? (
             <>
-              <span className="material-symbols-outlined text-3xl">check_circle</span>
-              Laporan Ter-eskalasi
+              <span className="material-symbols-outlined text-2xl sm:text-3xl shrink-0">check_circle</span>
+              <span className="text-center leading-snug">Laporan Ter-eskalasi</span>
             </>
           ) : (
             <>
-              <span
-                className="material-symbols-outlined text-3xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                report_problem
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 rounded-2xl border border-white/20 flex items-center justify-center shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]">
+                <span
+                  className="material-symbols-outlined text-3xl sm:text-4xl drop-shadow-md"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  report_problem
+                </span>
+              </div>
+              <span className="text-left sm:text-center leading-snug">
+                {escalateReport.isPending ? 'Memproses...' : 'Eskalasi ke Dokter Onkologi'}
               </span>
-              {escalateReport.isPending ? 'Memproses...' : 'Eskalasi ke Dokter Onkologi'}
             </>
           )}
         </button>

@@ -191,7 +191,7 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
                 {isNotifOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)} />
-                    <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-stone-100 py-4 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-3 sm:w-80 bg-white rounded-2xl shadow-2xl border border-stone-100 py-4 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="px-6 pb-3 border-b border-stone-50 flex justify-between items-center">
                         <h4 className="font-bold text-on-surface">Notifikasi</h4>
                         <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full uppercase tracking-widest">{unreadCount} Baru</span>

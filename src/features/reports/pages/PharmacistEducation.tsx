@@ -33,6 +33,26 @@ export default function PharmacistEducation() {
 
   // S-01: State untuk delete confirmation modal (menggantikan confirm())
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  const [editTargetId, setEditTargetId] = useState<string | null>(null)
+
+  const handleOpenEdit = (item: any) => {
+    setEditTargetId(item.id)
+    setNewVideo({
+      title: item.title,
+      description: item.description || '',
+      category: item.category,
+      videoUrl: item.videoUrl,
+      imageUrl: item.imageUrl || DEFAULT_THUMBNAIL,
+      isFeatured: item.isFeatured
+    })
+    setIsModalOpen(true)
+  }
+
+  const handleOpenCreate = () => {
+    setEditTargetId(null)
+    setNewVideo({ title: '', description: '', category: 'Terapi', videoUrl: '', imageUrl: DEFAULT_THUMBNAIL, isFeatured: false })
+    setIsModalOpen(true)
+  }
 
   // Client-side filtering for better UX responsiveness
   const filteredMaterials = materials?.filter(m => {
@@ -51,17 +71,30 @@ export default function PharmacistEducation() {
     e.preventDefault()
     if (!newVideo.title || !newVideo.videoUrl) return
     
-    createEducation({
-      ...newVideo,
-      content: ''
-    }, {
-      onSuccess: () => {
-        toast.success('Konten edukasi berhasil ditambahkan')
-        setIsModalOpen(false)
-        setNewVideo({ title: '', description: '', category: 'Terapi', videoUrl: '', imageUrl: DEFAULT_THUMBNAIL, isFeatured: false })
-        setImageError(false)
-      }
-    })
+    if (editTargetId) {
+      updateEducation({
+        id: editTargetId,
+        updates: { ...newVideo }
+      }, {
+        onSuccess: () => {
+          toast.success('Konten edukasi berhasil diperbarui')
+          setIsModalOpen(false)
+          setEditTargetId(null)
+          setImageError(false)
+        }
+      })
+    } else {
+      createEducation({
+        ...newVideo,
+        content: ''
+      }, {
+        onSuccess: () => {
+          toast.success('Konten edukasi berhasil ditambahkan')
+          setIsModalOpen(false)
+          setImageError(false)
+        }
+      })
+    }
   }
 
   const handleDelete = (id: string) => {
@@ -114,7 +147,7 @@ export default function PharmacistEducation() {
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={handleOpenCreate}
               className="flex items-center justify-center gap-2 bg-primary text-on-primary px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95 w-full sm:w-auto font-body"
             >
               <span className="material-symbols-outlined text-[22px]">upload</span>
@@ -192,8 +225,7 @@ export default function PharmacistEducation() {
                     <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl headline-font font-black text-white mb-4 leading-tight tracking-tight">{featuredMaterial.title}</h3>
                     <p className="text-white/75 text-xs sm:text-sm md:text-base lg:text-lg mb-6 sm:mb-8 md:mb-10 max-w-xl font-medium leading-relaxed">{featuredMaterial.description || 'Materi pilihan terbaik untuk mendukung pemulihan pasien.'}</p>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-                      <button className="bg-white text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 shadow-xl w-full sm:w-auto text-center font-body">Edit Konten</button>
-                      <button className="bg-white/10 border border-white/20 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95 w-full sm:w-auto text-center font-body">Statistik</button>
+                      <button onClick={(e) => { e.stopPropagation(); handleOpenEdit(featuredMaterial); }} className="bg-white text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 shadow-xl w-full sm:w-auto text-center font-body">Edit Konten</button>
                     </div>
                   </div>
                   <div 
@@ -245,21 +277,39 @@ export default function PharmacistEducation() {
                   <div className="px-10 pb-10 pt-4 flex flex-col flex-1">
                     <h3 className="text-2xl font-black text-on-surface mb-3 headline-font leading-tight group-hover:text-primary transition-colors tracking-tight">{item.title}</h3>
                     <p className="text-on-surface-variant text-sm line-clamp-2 mb-8 font-medium leading-relaxed opacity-70">{item.description}</p>
-                    <div className="mt-auto flex items-center justify-between pt-8 border-t border-stone-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-[10px] font-black text-stone-400 uppercase">MN</div>
-                        <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Baru Ditambahkan</span>
+                    <div className="mt-auto flex flex-wrap items-center justify-between pt-6 border-t border-stone-50 gap-4">
+                      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-[10px] font-black text-stone-400 uppercase shrink-0">MN</div>
+                        <span className="text-[9px] sm:text-[10px] font-black text-stone-400 uppercase tracking-widest leading-tight">Baru Ditambahkan</span>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleOpenEdit(item); }}
+                            className="p-2 sm:p-3 text-stone-300 hover:text-primary hover:bg-primary-container/30 rounded-2xl transition-all active:scale-90"
+                            title="Edit Konten"
+                        >
+                          <span className="material-symbols-outlined text-lg sm:text-xl">edit</span>
+                        </button>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(item.videoUrl || window.location.href);
+                                toast.success('Tautan disalin!');
+                            }}
+                            className="p-2 sm:p-3 text-stone-300 hover:text-primary hover:bg-primary-container/30 rounded-2xl transition-all active:scale-90"
+                            title="Salin Tautan"
+                        >
+                          <span className="material-symbols-outlined text-lg sm:text-xl">content_copy</span>
+                        </button>
                         <button 
                             onClick={() => handleDelete(item.id)}
-                            className="p-3 text-stone-300 hover:text-tertiary hover:bg-tertiary-container/30 rounded-2xl transition-all active:scale-90"
+                            className="p-2 sm:p-3 text-stone-300 hover:text-tertiary hover:bg-tertiary-container/30 rounded-2xl transition-all active:scale-90"
                         >
-                          <span className="material-symbols-outlined text-xl">delete</span>
+                          <span className="material-symbols-outlined text-lg sm:text-xl">delete</span>
                         </button>
                         <button 
                             onClick={() => item.videoUrl && window.open(item.videoUrl, '_blank')}
-                            className="px-6 py-3 bg-stone-50 text-on-surface font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-on-primary rounded-2xl transition-all shadow-sm"
+                            className="px-4 py-2 sm:px-6 sm:py-3 bg-stone-50 text-on-surface font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-primary hover:text-on-primary rounded-xl sm:rounded-2xl transition-all shadow-sm"
                         >
                             Detail
                         </button>
@@ -274,13 +324,13 @@ export default function PharmacistEducation() {
 
         {/* Modal (Simplified implementation of the design's modal intent) */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-xl rounded-[48px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-stone-100">
-              <div className="p-12">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-xl rounded-[32px] sm:rounded-[48px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-stone-100 max-h-[90vh] flex flex-col">
+              <div className="p-6 sm:p-12 overflow-y-auto">
                 <div className="flex justify-between items-start mb-10">
                     <div>
-                        <h2 className="headline-font text-3xl font-black text-on-surface tracking-tight">Upload Materi</h2>
-                        <p className="text-sm font-medium text-stone-500 mt-1">Tambahkan konten edukasi baru ke perpustakaan digital.</p>
+                        <h2 className="headline-font text-3xl font-black text-on-surface tracking-tight">{editTargetId ? 'Edit Materi' : 'Upload Materi'}</h2>
+                        <p className="text-sm font-medium text-stone-500 mt-1">{editTargetId ? 'Ubah informasi konten edukasi ini.' : 'Tambahkan konten edukasi baru ke perpustakaan digital.'}</p>
                     </div>
                     <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-400">
                         <span className="material-symbols-outlined">close</span>
@@ -385,8 +435,8 @@ export default function PharmacistEducation() {
                       type="submit"
                       className="w-full py-5 bg-primary text-on-primary rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
-                      <span className="material-symbols-outlined text-xl">cloud_upload</span>
-                      Simpan & Publikasikan
+                      <span className="material-symbols-outlined text-xl">{editTargetId ? 'save' : 'cloud_upload'}</span>
+                      {editTargetId ? 'Simpan Perubahan' : 'Simpan & Publikasikan'}
                     </button>
                   </div>
                 </form>
