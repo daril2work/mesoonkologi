@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import PatientLayout from '../components/PatientLayout'
 import PatientTopNav from '../components/PatientTopNav'
-import { ArrowRight, Play, MessageCircle, Download, FileText } from 'lucide-react'
+import { ArrowRight, Play, MessageCircle, Download, FileText, Copy, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@configs/app.config'
 import { useEducationMaterials, useFeaturedMaterial } from '../api/useEducation'
 import type { EducationMaterial } from '../types'
+import { toast } from 'react-hot-toast'
 
 const TABS = ['Semua Topik', 'Nutrisi', 'Perawatan Kulit', 'Psikologi'] as const
 type TabKey = typeof TABS[number]
@@ -18,9 +19,30 @@ const TAB_TO_CATEGORY: Record<TabKey, string | undefined> = {
   'Psikologi': 'Psikologi',
 }
 
+function getEmbedUrl(url: string) {
+  if (!url) return '';
+  
+  // Handle YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+  }
+
+  // Handle TikTok (e.g. https://www.tiktok.com/@user/video/123456789)
+  const ttMatch = url.match(/tiktok\.com\/@[^\/]+\/video\/(\d+)/i);
+  if (ttMatch && ttMatch[1]) {
+    // TikTok embed URL format
+    return `https://www.tiktok.com/embed/v2/${ttMatch[1]}`;
+  }
+
+  // Fallback (jika format lain, iframe mungkin akan diblokir oleh platform jika mereka memakai X-Frame-Options: DENY)
+  return url;
+}
+
 export default function PatientEducation() {
   const navigate = useNavigate()
   const [selectedTab, setSelectedTab] = useState<TabKey>('Semua Topik')
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null)
 
   const category = TAB_TO_CATEGORY[selectedTab]
   const { data: materials, isLoading } = useEducationMaterials(category)
@@ -28,7 +50,7 @@ export default function PatientEducation() {
 
   const handleContentClick = (item: EducationMaterial) => {
     if (item.videoUrl) {
-      window.open(item.videoUrl, '_blank')
+      setActiveVideoUrl(item.videoUrl)
     } else {
       // Jika tidak ada video, bisa diarahkan ke modal detail atau link eksternal jika ada
       // Untuk sementara, kita asumsi video adalah interaksi utama yang diinginkan user
@@ -89,16 +111,37 @@ export default function PatientEducation() {
                 }}>
                   {featured.description}
                 </p>
-                <button 
-                  onClick={() => handleContentClick(featured)}
-                  style={{
-                    background: '#b2f0e0', color: '#046b5e', border: 'none',
-                    padding: '14px 28px', borderRadius: '99px', fontWeight: 800,
-                    fontSize: '0.95rem', cursor: 'pointer'
-                  }}
-                >
-                  Mulai Membaca
-                </button>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <button 
+                    onClick={() => handleContentClick(featured)}
+                    style={{
+                      background: '#b2f0e0', color: '#046b5e', border: 'none',
+                      padding: '14px 28px', borderRadius: '99px', fontWeight: 800,
+                      fontSize: '0.95rem', cursor: 'pointer'
+                    }}
+                  >
+                    Mulai Membaca
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (featured.videoUrl) {
+                        navigator.clipboard.writeText(featured.videoUrl);
+                        toast.success('Tautan disalin!');
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success('Tautan disalin!');
+                      }
+                    }}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.4)',
+                      padding: '14px 28px', borderRadius: '99px', fontWeight: 800,
+                      fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                      backdropFilter: 'blur(4px)'
+                    }}
+                  >
+                    <Copy size={18} /> Salin Tautan
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -190,6 +233,41 @@ export default function PatientEducation() {
 
         </main>
       </div>
+
+      {/* Video Player Modal */}
+      {activeVideoUrl && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.85)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backdropFilter: 'blur(8px)', padding: '24px'
+        }}>
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: '900px',
+            background: '#000', borderRadius: '16px', overflow: 'hidden',
+            aspectRatio: '16/9', boxShadow: '0 24px 64px rgba(0,0,0,0.5)'
+          }}>
+            <button 
+              onClick={() => setActiveVideoUrl(null)}
+              style={{
+                position: 'absolute', top: '16px', right: '16px', zIndex: 10,
+                background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff',
+                width: '40px', height: '40px', borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', backdropFilter: 'blur(4px)'
+              }}
+            >
+              <X size={24} />
+            </button>
+            <iframe
+              src={getEmbedUrl(activeVideoUrl)}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </PatientLayout>
   )
 }
@@ -287,17 +365,39 @@ function MaterialCard({ item, index, onOpen }: { item: EducationMaterial; index:
               {isVideoType ? 'Video Materi' : 'Artikel'}
             </span>
           </div>
-          <button 
-            onClick={onOpen}
-            style={{
-              background: 'transparent', border: 'none',
-              color: isHighlighted ? colors.text : '#046b5e',
-              fontWeight: 700, fontSize: '0.875rem',
-              display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer'
-            }}
-          >
-            {isVideoType ? 'Tonton' : 'Baca'} <ArrowRight size={16} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (item.videoUrl) {
+                  navigator.clipboard.writeText(item.videoUrl);
+                  toast.success('Tautan disalin!');
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success('Tautan disalin!');
+                }
+              }}
+              style={{
+                background: 'transparent', border: 'none',
+                color: isHighlighted ? colors.text : '#a3a9a8',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}
+              title="Salin Tautan"
+            >
+              <Copy size={18} />
+            </button>
+            <button 
+              onClick={onOpen}
+              style={{
+                background: 'transparent', border: 'none',
+                color: isHighlighted ? colors.text : '#046b5e',
+                fontWeight: 700, fontSize: '0.875rem',
+                display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer'
+              }}
+            >
+              {isVideoType ? 'Tonton' : 'Baca'} <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
