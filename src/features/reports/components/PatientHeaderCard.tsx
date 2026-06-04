@@ -22,7 +22,6 @@ export function PatientHeaderCard({
   weight,
   height,
   bp,
-  cycleInfo,
   isActive = true,
   statusReason,
 }: PatientHeaderCardProps) {
