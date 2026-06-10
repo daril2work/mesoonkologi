@@ -19,7 +19,7 @@ export default function PatientDashboard() {
   const { data: reports } = usePatientReports(1)
   const { data: education } = useEducationMaterials()
   
-  const nextSchedule = schedules?.[0]
+  const nextSchedule = schedules?.find(s => new Date(s.scheduleDate) >= new Date())
   const latestReport = reports?.[0]
   const nutritionData = latestReport?.symptoms || {}
   
@@ -87,29 +87,35 @@ export default function PatientDashboard() {
           </section>
 
           {/* Jadwal Kemo Berikutnya */}
-          <section className="bg-white p-6 rounded-[32px] shadow-sm border-l-8 border-secondary-container">
+          <section className="bg-secondary-container p-6 rounded-[32px] shadow-sm">
             <div className="mb-4">
-              <Calendar className="text-secondary" size={24} />
+              <Calendar className="text-secondary" size={28} />
             </div>
-            <h2 className="font-headline text-lg font-bold text-on-surface mb-2">
+            <p className="text-[10px] font-black text-secondary/60 uppercase tracking-[0.2em] mb-1">
+              Jadwal Terdekat
+            </p>
+            <h2 className="font-headline text-lg font-bold text-secondary mb-2">
               {nextSchedule?.title || 'Jadwal Kemo Berikutnya'}
             </h2>
             {nextSchedule ? (
               <div className="mb-4">
-                <p className="font-headline text-sm font-semibold text-on-surface">
+                <p className="font-headline text-sm font-semibold text-secondary/90">
                   {format(new Date(nextSchedule.scheduleDate), 'eeee, d MMM', { locale: id })}, Pukul {format(new Date(nextSchedule.scheduleDate), 'HH:mm', { locale: id })} WIB
                 </p>
-                <p className="font-body text-xs text-on-surface-variant mt-1">
+                <p className="font-body text-xs text-secondary/80 mt-1">
                   {nextSchedule.location}
                 </p>
               </div>
             ) : (
-              <p className="font-body text-sm text-on-surface-variant mb-4">
+              <p className="font-body text-sm text-secondary/90 mb-4">
                 Belum ada jadwal yang direncanakan.
               </p>
             )}
-            <button className="text-secondary font-headline font-bold text-xs flex items-center gap-2 hover:opacity-80 transition-opacity">
-              Atur Pengingat <Bell size={14} />
+            <button 
+              onClick={() => navigate(ROUTES.PATIENT_SCHEDULE)}
+              className="text-secondary font-headline font-bold text-xs flex items-center gap-1 hover:underline"
+            >
+              Lihat Semua Jadwal <span>→</span>
             </button>
           </section>
         </div>

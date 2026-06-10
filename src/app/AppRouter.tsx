@@ -17,6 +17,7 @@ const ReportForm = lazy(() => import('@features/reports/pages/ReportForm'))
 const PatientHistory = lazy(() => import('@features/reports/pages/PatientHistory'))
 const PatientChat = lazy(() => import('@features/reports/pages/PatientChat'))
 const PatientEducation = lazy(() => import('@features/reports/pages/PatientEducation'))
+const PatientSchedule = lazy(() => import('@features/reports/pages/PatientSchedule'))
 const PharmacistDashboard = lazy(() => import('@features/reports/pages/PharmacistDashboard'))
 const PharmacistPatients = lazy(() => import('@features/reports/pages/PharmacistPatients'))
 const PharmacistPatientDetail = lazy(() => import('@features/reports/pages/PharmacistPatientDetail'))
@@ -65,6 +66,7 @@ export default function AppRouter() {
           <Route path={ROUTES.PATIENT_HISTORY} element={<PatientHistory />} />
           <Route path={ROUTES.PATIENT_CHAT} element={<PatientChat />} />
           <Route path={ROUTES.PATIENT_EDUCATION} element={<PatientEducation />} />
+          <Route path={ROUTES.PATIENT_SCHEDULE} element={<PatientSchedule />} />
           <Route path={ROUTES.PATIENT_PROFILE} element={<PatientPlaceholderPage />} />
         </Route>
 
