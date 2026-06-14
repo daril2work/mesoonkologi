@@ -3,10 +3,17 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 // @ts-ignore: Deno context
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// SEC-03: CORS dibatasi ke origin spesifik, bukan wildcard (*)
+// @ts-ignore: Deno context
+const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') ?? 'http://localhost:5173'
+
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// SEC-04: Batas maksimal percobaan OTP salah sebelum diinvalidasi
+const MAX_OTP_ATTEMPTS = 5
 
 serve(async (req: Request) => {
   // Handle CORS preflight
@@ -23,18 +30,42 @@ serve(async (req: Request) => {
       )
     }
 
-    // Clean phone number from non-digits
+    // Bersihkan nomor dari non-digit
     const cleanPhone = phone_number.replace(/\D/g, '')
 
-    // Initialize Supabase Client with Service Role Key
+    // Initialize Supabase Admin Client
     // @ts-ignore: Deno context
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     // @ts-ignore: Deno context
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Check if user with phone number exists in profiles
+    // === SEC-04: Rate Limiting ===
+    // Cek apakah sudah ada OTP aktif (belum expired, belum dipakai) untuk nomor ini.
+    // Jika ada, tolak request — paksa user tunggu hingga OTP sebelumnya expired.
+    const { data: activeOtp, error: activeOtpError } = await supabaseAdmin
+      .from('password_reset_otps')
+      .select('id, expires_at')
+      .eq('phone_number', cleanPhone)
+      .eq('used', false)
+      .gt('expires_at', new Date().toISOString())
+      .limit(1)
+      .maybeSingle()
+
+    if (!activeOtpError && activeOtp) {
+      // Hitung sisa waktu tunggu
+      const expiresAt = new Date(activeOtp.expires_at)
+      const remainingMs = expiresAt.getTime() - Date.now()
+      const remainingMins = Math.ceil(remainingMs / (1000 * 60))
+      return new Response(
+        JSON.stringify({
+          error: `Kode OTP sudah dikirim. Tunggu ${remainingMins} menit sebelum meminta kode baru.`
+        }),
+        { status: 429, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Cek apakah user dengan nomor telepon ini terdaftar
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, full_name, phone_number')
@@ -49,25 +80,38 @@ serve(async (req: Request) => {
       )
     }
 
-    // Generate 6-digit numeric OTP code
-    const otp = Math.floor(100000 + Math.random() * 900000).toString()
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes validity
+    // === SEC-04: Invalidasi OTP Lama ===
+    // Sebelum membuat OTP baru, invalidasi semua OTP lama yang mungkin tersisa
+    // (misalnya yang sudah terlanjur expired tapi belum ditandai used)
+    await supabaseAdmin
+      .from('password_reset_otps')
+      .update({ used: true })
+      .eq('phone_number', cleanPhone)
+      .eq('used', false)
 
-    // Store OTP in database
+    // === SEC-04: Generate OTP dengan crypto (bukan Math.random) ===
+    // Math.random() tidak cryptographically secure — gunakan Web Crypto API
+    const array = new Uint32Array(1)
+    crypto.getRandomValues(array)
+    const otp = (100000 + (array[0] % 900000)).toString()
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 menit
+
+    // Simpan OTP baru ke database
     const { error: otpError } = await supabaseAdmin
       .from('password_reset_otps')
       .insert({
         phone_number: cleanPhone,
         otp_code: otp,
         expires_at: expiresAt,
-        used: false
+        used: false,
+        attempt_count: 0,
       })
 
     if (otpError) {
       throw new Error('Gagal membuat kode OTP: ' + otpError.message)
     }
 
-    // Send WhatsApp via Fonnte API
+    // SEC-02: Token Fonnte HANYA dari Supabase Secrets — tidak boleh dari DB
     // @ts-ignore: Deno context
     const fonnteToken = Deno.env.get('FONNTE_TOKEN')
     if (!fonnteToken) {
@@ -88,9 +132,7 @@ serve(async (req: Request) => {
 
     const fonnteRes = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
-      headers: {
-        'Authorization': fonnteToken
-      },
+      headers: { 'Authorization': fonnteToken },
       body: form
     })
 
@@ -101,9 +143,10 @@ serve(async (req: Request) => {
       { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
 
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: message }),
       { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
   }

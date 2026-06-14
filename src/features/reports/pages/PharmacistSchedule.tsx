@@ -5,8 +5,12 @@ import { usePatientDirectory } from '../api/usePatientDirectory'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { clsx } from 'clsx'
-import { fonnteService } from '@/services/fonnte.service'
+import { supabase } from '@lib/supabase'
 import toast from 'react-hot-toast'
+
+// INT-05: Kapasitas maksimal klinik per hari — ganti magic number 10
+// Nilai ini bisa dipindah ke system_settings di masa mendatang
+const CLINIC_MAX_CAPACITY = 10
 
 export default function PharmacistSchedule() {
   const [viewType, setViewType] = useState<'monthly' | 'weekly'>('monthly')
@@ -37,7 +41,6 @@ export default function PharmacistSchedule() {
 
     try {
       // M-01 Fix: Konversi waktu lokal WIB (GMT+7) ke ISO string yang benar
-      // Menggunakan `+07:00` agar jadwal tersimpan dengan offset zona waktu yang akurat
       const scheduleISODate = `${formData.date}T${formData.time}:00+07:00`
       await createScheduleMutation.mutateAsync({
         patient_id: formData.patientId,
@@ -48,41 +51,31 @@ export default function PharmacistSchedule() {
       toast.success('Jadwal berhasil ditambahkan')
       setIsModalOpen(false)
 
-      // Otomatisasi WA Reminder H-1 via Fonnte Scheduled API
+      // INT-04: WA Reminder H-1 dijadwalkan dari SERVER — bukan dari browser
+      // Keuntungan: reliable (tidak tergantung browser tetap terbuka),
+      //             aman (waktu dihitung server, tidak bisa dimanipulasi client)
       try {
-        const activePatient = patients?.find(p => p.id === formData.patientId)
-        if (activePatient && activePatient.phoneNumber) {
-          // Hitung H-1 (24 jam sebelum waktu jadwal) — gunakan waktu lokal WIB
-          const appointmentTime = new Date(`${formData.date}T${formData.time}:00+07:00`)
-          const reminderTime = new Date(appointmentTime.getTime() - 24 * 60 * 60 * 1000)
-          
-          // Fallback jika sudah lewat (janji hari ini/besok pagi), jadwalkan 5 menit dari sekarang
-          const now = new Date()
-          const targetTime = reminderTime > now ? reminderTime : new Date(now.getTime() + 5 * 60 * 1000)
-          
-          const scheduleTimestamp = Math.floor(targetTime.getTime() / 1000)
+        const { data, error } = await supabase.functions.invoke('schedule-wa-reminder', {
+          body: {
+            patientId: formData.patientId,
+            scheduleDate: scheduleISODate,
+            scheduleTitle: formData.title,
+          }
+        })
 
-          const formattedMsg = fonnteService.formatReminderMessage(
-            activePatient.fullName,
-            format(appointmentTime, 'eeee, d MMMM yyyy', { locale: id }),
-            formData.time,
-            formData.title
-          )
-
-          await fonnteService.sendMessage({
-            target: activePatient.phoneNumber,
-            message: formattedMsg,
-            schedule: scheduleTimestamp
-          })
+        if (error || data?.error) {
+          console.error('[Schedule WA Reminder]', error ?? data?.error)
+          toast.error('Gagal menjadwalkan WA reminder, namun jadwal berhasil disimpan')
+        } else {
           toast.success('WhatsApp Reminder H-1 dijadwalkan otomatis')
         }
       } catch (waError) {
-        console.error('[Scheduled WA Error]', waError)
+        console.error('[Schedule WA Reminder Error]', waError)
         toast.error('Gagal menjadwalkan WA otomatis, namun jadwal berhasil disimpan')
       }
-    } catch (error: any) {
-      console.error('[CreateSchedule Error]', error)
-      toast.error(`Gagal: ${error.message || 'Cek koneksi database'}`)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Cek koneksi database'
+      toast.error(`Gagal: ${msg}`)
     }
   }
 
@@ -346,12 +339,12 @@ export default function PharmacistSchedule() {
               <div className="bg-surface-container-high/40 p-8 rounded-2xl border border-stone-100 shadow-sm">
                 <p className="text-stone-500 text-[10px] font-black uppercase tracking-[0.2em]">Kapasitas Klinik</p>
                 <h4 className="text-5xl font-black text-on-surface mt-3 headline-font tracking-tight">
-                  {Math.min(100, Math.round((todaySchedules.length / 10) * 100))}%
+                  {Math.min(100, Math.round((todaySchedules.length / CLINIC_MAX_CAPACITY) * 100))}%
                 </h4>
                 <div className="w-full h-2.5 bg-white rounded-full mt-5 overflow-hidden border border-stone-100 shadow-inner">
                   <div 
                     className="h-full bg-primary rounded-full shadow-lg shadow-primary/20 transition-all duration-500"
-                    style={{ width: `${Math.min(100, (todaySchedules.length / 10) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (todaySchedules.length / CLINIC_MAX_CAPACITY) * 100)}%` }}
                   ></div>
                 </div>
               </div>

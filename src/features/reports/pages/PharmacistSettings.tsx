@@ -1,136 +1,62 @@
 // ============================================================
-// MESO App — Pharmacist Settings
+// MESO App — Pharmacist Settings (INT-02 Refactored)
+// State management dipindahkan ke useSystemSettings hook.
+// checkFonnteStatus dipindahkan ke Edge Function (SMELL-05 fix).
 // ============================================================
 import { useState, useEffect } from 'react'
 import PharmacistLayout from '../components/PharmacistLayout'
 import { useAuthStore } from '@features/auth/store'
-import { supabase } from '@lib/supabase'
 import { toast } from 'react-hot-toast'
 import { fonnteService } from '@/services/fonnte.service'
+import UserManagementPanel from '../components/UserManagementPanel'
+import {
+  useSystemSettings,
+  useSaveWaSettings,
+  useSaveFonnteToken,
+  checkFonnteStatusViaServer,
+} from '../api/useSystemSettings'
 
 export default function PharmacistSettings() {
   const { user } = useAuthStore()
+
+  // INT-02: State form lokal (terisolasi, bukan seluruh settings)
   const [pharmacistWa, setPharmacistWa] = useState('')
   const [doctorWa, setDoctorWa] = useState('')
   const [fonnteToken, setFonnteToken] = useState('')
   const [showToken, setShowToken] = useState(false)
   const [fonnteStatus, setFonnteStatus] = useState<'loading' | 'connect' | 'disconnect' | 'invalid'>('loading')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isSavingToken, setIsSavingToken] = useState(false)
   const [isTestingPharma, setIsTestingPharma] = useState(false)
   const [isTestingDoctor, setIsTestingDoctor] = useState(false)
+  const [activeTab, setActiveTab] = useState<'profile' | 'users'>('profile')
 
-  const checkFonnteStatus = async (tokenToUse: string) => {
-    if (!tokenToUse) {
-      setFonnteStatus('disconnect')
-      return
-    }
-    setFonnteStatus('loading')
-    try {
-      const response = await fetch('https://api.fonnte.com/device', {
-        method: 'POST',
-        headers: {
-          'Authorization': tokenToUse
-        }
-      })
-      const data = await response.json()
-      if (data && data.status === true) {
-        if (data.device_status === 'connect') {
-          setFonnteStatus('connect')
-        } else {
-          setFonnteStatus('disconnect')
-        }
-      } else {
-        setFonnteStatus('invalid')
-      }
-    } catch (error) {
-      console.error('[CheckFonnteStatus Error]', error)
-      setFonnteStatus('disconnect')
-    }
-  }
+  // INT-02: Data dari React Query (caching + retry otomatis)
+  const { data: settings, isLoading } = useSystemSettings()
+  const saveWaSettings = useSaveWaSettings()
+  const saveFonnteToken = useSaveFonnteToken()
 
-  // Fetch current WhatsApp settings from Supabase
+  // Sync form state saat data dari server tiba
   useEffect(() => {
-    async function loadSettings() {
-      try {
-        const { data, error } = await supabase
-          .from('system_settings')
-          .select('*')
-
-        if (error) throw error
-
-        if (data) {
-          const pharmaSetting = data.find((item) => item.key === 'pharmacist_wa')
-          const docSetting = data.find((item) => item.key === 'doctor_wa')
-          const tokenSetting = data.find((item) => item.key === 'fonnte_token')
-          if (pharmaSetting) setPharmacistWa(pharmaSetting.value)
-          if (docSetting) setDoctorWa(docSetting.value)
-          if (tokenSetting && tokenSetting.value) {
-            setFonnteToken(tokenSetting.value)
-            checkFonnteStatus(tokenSetting.value)
-          } else {
-            setFonnteStatus('disconnect')
-          }
-        }
-      } catch (error) {
-        console.error('[LoadSettings Error]', error)
-      } finally {
-        setIsLoading(false)
-      }
+    if (settings) {
+      setPharmacistWa(settings.pharmacistWa)
+      setDoctorWa(settings.doctorWa)
     }
-    loadSettings()
+  }, [settings])
+
+  // SMELL-05: Cek status Fonnte via Edge Function — token tidak pernah ke browser
+  useEffect(() => {
+    checkFonnteStatusViaServer().then(setFonnteStatus)
   }, [])
 
-  // Handle saving the dynamic WhatsApp settings
-  const handleSaveSettings = async () => {
-    setIsSaving(true)
-    try {
-      const { error } = await supabase
-        .from('system_settings')
-        .upsert([
-          { key: 'pharmacist_wa', value: pharmacistWa.trim() },
-          { key: 'doctor_wa', value: doctorWa.trim() }
-        ])
-
-      if (error) throw error
-      
-      toast.success('Nomor WhatsApp petugas in-charge berhasil disimpan!', {
-        icon: '✅',
-        style: { border: '1px solid #e5f9f5' }
-      })
-    } catch (error) {
-      console.error('[SaveSettings Error]', error)
-      toast.error('Gagal menyimpan pengaturan WhatsApp.')
-    } finally {
-      setIsSaving(false)
-    }
+  const handleSaveSettings = () => {
+    saveWaSettings.mutate({ pharmacistWa, doctorWa })
   }
 
-  // Handle saving Fonnte API Token
   const handleSaveFonnteToken = async () => {
-    setIsSavingToken(true)
-    try {
-      const { error } = await supabase
-        .from('system_settings')
-        .upsert([
-          { key: 'fonnte_token', value: fonnteToken.trim() }
-        ])
-
-      if (error) throw error
-      
-      toast.success('Token API Fonnte berhasil disimpan!', {
-        icon: '🔑',
-        style: { border: '1px solid #e5f9f5' }
-      })
-      // Re-check status with the newly saved token
-      checkFonnteStatus(fonnteToken.trim())
-    } catch (error) {
-      console.error('[SaveToken Error]', error)
-      toast.error('Gagal menyimpan Token Fonnte.')
-    } finally {
-      setIsSavingToken(false)
-    }
+    await saveFonnteToken.mutateAsync(fonnteToken.trim())
+    // Re-check status setelah token baru disimpan
+    setFonnteStatus('loading')
+    const newStatus = await checkFonnteStatusViaServer()
+    setFonnteStatus(newStatus)
   }
 
   const handleTestPharma = async () => {
@@ -143,7 +69,6 @@ export default function PharmacistSettings() {
       })
       toast.success('Pesan tes berhasil dikirim ke Apoteker!')
     } catch (error) {
-      console.error(error)
       toast.error('Gagal mengirim pesan tes ke Apoteker.')
     } finally {
       setIsTestingPharma(false)
@@ -160,7 +85,6 @@ export default function PharmacistSettings() {
       })
       toast.success('Pesan tes berhasil dikirim ke Dokter!')
     } catch (error) {
-      console.error(error)
       toast.error('Gagal mengirim pesan tes ke Dokter.')
     } finally {
       setIsTestingDoctor(false)
@@ -170,15 +94,32 @@ export default function PharmacistSettings() {
   return (
     <PharmacistLayout>
       <div className="p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto">
-        <header className="mb-8 sm:mb-12">
+        <header className="mb-6 sm:mb-8">
           <h2 className="headline-font text-3xl sm:text-4xl font-black text-on-surface mb-2">Pengaturan Akun</h2>
           <p className="text-on-surface-variant text-sm sm:text-base font-medium">Kelola informasi profil dan preferensi sistem Anda.</p>
         </header>
 
-        <div className="space-y-8">
-          {/* Profil Pengguna */}
-          <section className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-[32px] border border-stone-100 shadow-sm">
-            <h3 className="font-bold text-lg mb-6">Profil Pengguna</h3>
+        {/* Tab Navigation */}
+        <div className="flex border-b border-stone-200 mb-8 overflow-x-auto hide-scrollbar">
+          <button 
+            onClick={() => setActiveTab('profile')}
+            className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'profile' ? 'border-[#1a7a7a] text-[#1a7a7a]' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
+          >
+            Profil &amp; Integrasi
+          </button>
+          <button 
+            onClick={() => setActiveTab('users')}
+            className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'users' ? 'border-[#1a7a7a] text-[#1a7a7a]' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
+          >
+            Pengelolaan User
+          </button>
+        </div>
+
+        {activeTab === 'profile' ? (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Profil Pengguna */}
+            <section className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-[32px] border border-stone-100 shadow-sm">
+              <h3 className="font-bold text-lg mb-6">Profil Pengguna</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
               <div>
                 <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Nama Lengkap</p>
@@ -251,14 +192,14 @@ export default function PharmacistSettings() {
                     </div>
                     <button 
                       onClick={handleSaveFonnteToken}
-                      disabled={isSavingToken}
+                      disabled={saveFonnteToken.isPending}
                       className="bg-[#1a7a7a] hover:bg-[#156363] text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shrink-0 w-full sm:w-auto"
                     >
-                      {isSavingToken ? 'Menyimpan...' : 'Simpan'}
+                      {saveFonnteToken.isPending ? 'Menyimpan...' : 'Simpan'}
                     </button>
                   </div>
                   <p className="text-[10px] text-stone-400">
-                    * Token disimpan secara aman di dalam database untuk pemicu notifikasi otomatis.
+                    * Token disimpan secara aman di database. Status koneksi diverifikasi lewat server (token tidak melintas di browser).
                   </p>
                 </div>
 
@@ -320,10 +261,10 @@ export default function PharmacistSettings() {
                       <div className="col-span-1 md:col-span-2 pt-2 flex justify-end">
                         <button 
                           onClick={handleSaveSettings}
-                          disabled={isSaving}
+                          disabled={saveWaSettings.isPending}
                           className="bg-[#1a7a7a] hover:bg-[#156363] text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-[#1a7a7a]/20 transition-all active:scale-95 disabled:opacity-50 w-full sm:w-auto"
                         >
-                          {isSaving ? 'Menyimpan...' : 'Simpan Petugas Jaga'}
+                          {saveWaSettings.isPending ? 'Menyimpan...' : 'Simpan Petugas Jaga'}
                         </button>
                       </div>
                     </div>
@@ -346,7 +287,10 @@ export default function PharmacistSettings() {
               </div>
             </div>
           </section>
-        </div>
+          </div>
+        ) : (
+          <UserManagementPanel />
+        )}
       </div>
     </PharmacistLayout>
   )

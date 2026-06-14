@@ -82,10 +82,10 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
 
       if (pError) throw pError
 
-      // 2. Fetch Reports (last 15)
+      // 2. Fetch Reports (last 15) — kolom eksplisit, bukan select(*)
       const { data: reports, error: rError } = await supabase
         .from('symptom_reports')
-        .select('*, escalation_status, doctor_notes')
+        .select('id, patient_id, created_at, status, symptoms, qol_score, is_sentinel_alert, escalation_status, doctor_notes, suggested_regimen, pharmacist_notes, clinical_note, systolic, diastolic, heart_rate, temperature, spo2')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false })
         .limit(15)
@@ -99,11 +99,13 @@ export function usePatientDetail(patientId?: string, reportId?: string) {
         if (foundInBatch) {
           latest = foundInBatch
         } else {
-          // If not in the last 5, fetch the specific report
+          // INT-03: Sertakan patient_id filter untuk mencegah IDOR
+          // Tanpa filter ini, reportId dari pasien lain bisa diakses
           const { data: specific, error: sError } = await supabase
             .from('symptom_reports')
-            .select('*, escalation_status, doctor_notes')
+            .select('id, patient_id, created_at, status, symptoms, qol_score, is_sentinel_alert, escalation_status, doctor_notes, suggested_regimen, pharmacist_notes, clinical_note, systolic, diastolic, heart_rate, temperature, spo2')
             .eq('id', reportId)
+            .eq('patient_id', patientId)  // ← WAJIB: validasi ownership
             .single()
           
           if (!sError && specific) {

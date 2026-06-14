@@ -39,8 +39,8 @@ export const ROUTES = {
   DOCTOR_PATIENT: '/doctor/patient/:id/:reportId?',
   DOCTOR_HISTORY: '/doctor/history',
 
-  // Admin
-  ADMIN_DASHBOARD: '/admin/dashboard',
+  // Admin — placeholder untuk Sprint mendatang
+  // ADMIN_DASHBOARD: '/admin/dashboard',
 } as const
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES]

@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { supabase } from '@lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 import type { AuthUser, UserRole } from './types'
+import { logger } from '@utils/logger'
 
 interface AuthState {
   // State
@@ -38,7 +39,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       .single()
 
     if (profileError || !profile) {
-      console.error('[AuthStore] Critical: Profile not found for authenticated user:', session.user.id)
+      // SMELL-07: Jangan log user ID di console production — pakai structured logger
+      // yang hanya aktif di development (level DEBUG)
+      logger.error('[AuthStore] Critical: Profile not found for authenticated user', profileError, {
+        feature: 'auth',
+        // user ID TIDAK disertakan di log untuk mencegah PII leak di production console
+      })
       set({ session: null, user: null, isLoading: false, isInitialized: true })
       return
     }

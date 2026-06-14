@@ -7,6 +7,39 @@ import { logger } from '@utils/logger'
 import { detectSentinel, autoGrade } from '@utils/sentinel'
 import type { SymptomReport } from '../types'
 
+// ============================================================
+// Typed shape dari Supabase JOIN response
+// patient adalah satu-ke-satu join dari profiles via patient_id
+// Supabase bisa return object atau array[0] — kita handle keduanya
+// ============================================================
+interface SupabaseJoinedPatient {
+  id: string
+  full_name: string | null
+  current_cycle: number | null
+}
+
+interface SupabaseQueueRow {
+  id: string
+  patient_id: string
+  symptoms: Record<string, number>
+  clinical_note: string | null
+  is_sentinel_alert: boolean | null
+  grade_auto: string | null
+  grade_final: string | null
+  status: string
+  escalation_status: 'none' | 'escalated' | 'resolved'
+  created_at: string
+  updated_at: string
+  // Supabase JOIN: bisa berupa objek langsung atau array dengan 1 elemen
+  patient: SupabaseJoinedPatient | SupabaseJoinedPatient[] | null
+}
+
+// Helper: normalisasi patient JOIN ke objek tunggal
+function resolvePatient(patient: SupabaseQueueRow['patient']): SupabaseJoinedPatient {
+  if (Array.isArray(patient)) return patient[0] ?? { id: '', full_name: null, current_cycle: null }
+  return patient ?? { id: '', full_name: null, current_cycle: null }
+}
+
 export interface QueueReport extends SymptomReport {
   escalationStatus: 'none' | 'escalated' | 'resolved'
   patient: {
@@ -53,11 +86,13 @@ export function usePharmacistQueue() {
         throw error
       }
 
-      return (data || []).map(row => {
+      return (data as SupabaseQueueRow[] || []).map(row => {
         // RECALCULATE status on the fly to ensure logic consistency (ignores dietary)
         const currentSymptoms = row.symptoms || {}
         const isSentinel = detectSentinel(currentSymptoms)
         const computedGrade = autoGrade(currentSymptoms)
+
+        const patient = resolvePatient(row.patient)
 
         return {
           id: row.id,
@@ -72,13 +107,9 @@ export function usePharmacistQueue() {
           createdAt: row.created_at,
           updatedAt: row.updated_at,
           patient: {
-            id: Array.isArray(row.patient) ? (row.patient as any)[0]?.id : (row.patient as any)?.id ?? '',
-            fullName: Array.isArray(row.patient) 
-                ? (row.patient as any)[0]?.full_name 
-                : (row.patient as any)?.full_name ?? 'Pasien Tidak Diketahui',
-            currentCycle: Array.isArray(row.patient)
-                ? (row.patient as any)[0]?.current_cycle
-                : (row.patient as any)?.current_cycle ?? 1
+            id: patient.id ?? '',
+            fullName: patient.full_name ?? 'Pasien Tidak Diketahui',
+            currentCycle: patient.current_cycle ?? 1,
           }
         } as QueueReport
       })

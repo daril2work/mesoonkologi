@@ -230,7 +230,7 @@ export default function PharmacistEducation() {
                   </div>
                   <div 
                     className="w-full max-w-[200px] aspect-square sm:max-w-[240px] lg:max-w-none lg:w-72 lg:h-72 xl:w-96 xl:h-96 bg-white/5 backdrop-blur-3xl rounded-[32px] sm:rounded-[64px] flex items-center justify-center p-4 sm:p-8 border border-white/10 z-10 transition-transform duration-1000 group-hover:rotate-3 shrink-0 relative cursor-pointer shadow-lg"
-                    onClick={() => featuredMaterial.videoUrl && window.open(featuredMaterial.videoUrl, '_blank')}
+                    onClick={() => featuredMaterial.videoUrl && window.open(featuredMaterial.videoUrl, '_blank', 'noopener,noreferrer')}
                   >
                     <img 
                         className="w-full h-full object-cover rounded-[24px] sm:rounded-[48px] shadow-2xl border-4 border-white/10" 
@@ -246,7 +246,7 @@ export default function PharmacistEducation() {
                 <div key={item.id} className="group bg-white rounded-[40px] overflow-hidden transition-all duration-500 hover:translate-y-[-8px] hover:shadow-2xl hover:shadow-primary/5 border border-stone-100 flex flex-col">
                   <div 
                     className="relative h-64 w-full overflow-hidden p-3 cursor-pointer"
-                    onClick={() => item.videoUrl && window.open(item.videoUrl, '_blank')}
+                    onClick={() => item.videoUrl && window.open(item.videoUrl, '_blank', 'noopener,noreferrer')}
                   >
                     <img
                       className="w-full h-full object-cover rounded-[32px] transition-transform duration-1000 group-hover:scale-105"
@@ -308,7 +308,7 @@ export default function PharmacistEducation() {
                           <span className="material-symbols-outlined text-lg sm:text-xl">delete</span>
                         </button>
                         <button 
-                            onClick={() => item.videoUrl && window.open(item.videoUrl, '_blank')}
+                            onClick={() => item.videoUrl && window.open(item.videoUrl, '_blank', 'noopener,noreferrer')}
                             className="px-4 py-2 sm:px-6 sm:py-3 bg-stone-50 text-on-surface font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-primary hover:text-on-primary rounded-xl sm:rounded-2xl transition-all shadow-sm"
                         >
                             Detail

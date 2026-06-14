@@ -263,10 +263,13 @@ export default function PharmacistDashboard() {
               </div>
 
               <div className="p-6 bg-surface-container-lowest border-t border-stone-100 flex items-center justify-center">
-                <button className="text-stone-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:text-primary transition-colors">
+                <Link
+                  to={ROUTES.PHARMA_PATIENTS}
+                  className="text-stone-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:text-primary transition-colors"
+                >
                   Lihat Semua Antrean Rutin
-                  <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
-                </button>
+                  <span className="material-symbols-outlined text-sm">keyboard_arrow_right</span>
+                </Link>
               </div>
             </div>
           </section>

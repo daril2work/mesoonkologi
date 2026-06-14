@@ -37,7 +37,9 @@ export function usePatientDirectory() {
       if (error) throw error
 
       // Map data together
-      return (data || []).map(row => mapPatientDirectoryRow(row as any))
+      // reportMapper.mapPatientDirectoryRow sudah ditype dengan SupabaseProfileRow
+      // sehingga tidak perlu as any lagi
+      return (data || []).map(row => mapPatientDirectoryRow(row))
     }
   })
 }

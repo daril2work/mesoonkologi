@@ -1,8 +1,13 @@
 // @ts-ignore: Deno context
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
+// SEC-03: CORS dibatasi ke origin spesifik, bukan wildcard (*)
+// Tambahkan ALLOWED_ORIGIN ke Supabase Edge Function Secrets
+// @ts-ignore: Deno context
+const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') ?? 'http://localhost:5173'
+
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -14,43 +19,41 @@ serve(async (req: Request) => {
 
   try {
     const { target, message, schedule } = await req.json()
-    // @ts-ignore: Deno context
-    let token = Deno.env.get('FONNTE_TOKEN')
 
-    if (!token) {
-      // @ts-ignore: Deno context
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')
-      // @ts-ignore: Deno context
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-      if (supabaseUrl && supabaseKey) {
-        // @ts-ignore: Deno import
-        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-        const supabase = createClient(supabaseUrl, supabaseKey)
-        const { data, error } = await supabase
-          .from('system_settings')
-          .select('value')
-          .eq('key', 'fonnte_token')
-          .single()
-        
-        if (!error && data?.value) {
-          token = data.value
-        }
-      }
+    // Validasi input wajib
+    if (!target || !message) {
+      return new Response(
+        JSON.stringify({ error: 'Parameter target dan message wajib diisi' }),
+        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      )
     }
+
+    // SEC-02: Token HARUS berasal dari Supabase Secrets (bukan DB)
+    // Hapus fallback DB — paksa FONNTE_TOKEN ada di environment secrets
+    // @ts-ignore: Deno context
+    const token = Deno.env.get('FONNTE_TOKEN')
 
     if (!token) {
       return new Response(
-        JSON.stringify({ error: 'FONNTE_TOKEN not configured in Edge Function or Database' }),
+        JSON.stringify({ error: 'FONNTE_TOKEN belum dikonfigurasi di Supabase Edge Function Secrets' }),
         { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
     const form = new FormData()
-    // Clean target from non-digits and ensure it starts with 62 or 0
+
+    // Bersihkan target: hanya angka, konversi 0xxx → 62xxx
     let cleanTarget = target.replace(/\D/g, '')
     if (cleanTarget.startsWith('0')) {
       cleanTarget = '62' + cleanTarget.slice(1)
+    }
+
+    // Validasi: target harus berupa nomor yang valid (min 10 digit)
+    if (cleanTarget.length < 10) {
+      return new Response(
+        JSON.stringify({ error: 'Nomor tujuan tidak valid' }),
+        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      )
     }
 
     form.append('target', cleanTarget)
@@ -62,8 +65,8 @@ serve(async (req: Request) => {
 
     const res = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
-      headers: { 
-        'Authorization': token 
+      headers: {
+        'Authorization': token
       },
       body: form,
     })
@@ -74,9 +77,10 @@ serve(async (req: Request) => {
       JSON.stringify(result),
       { status: res.status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui'
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: message }),
       { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
   }
