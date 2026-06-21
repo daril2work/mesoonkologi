@@ -44,10 +44,10 @@ serve(async (req: Request) => {
     // Cek apakah sudah ada OTP aktif (belum expired, belum dipakai) untuk nomor ini.
     // Jika ada, tolak request — paksa user tunggu hingga OTP sebelumnya expired.
     const { data: activeOtp, error: activeOtpError } = await supabaseAdmin
-      .from('password_reset_otps')
+      .from('otp_requests')
       .select('id, expires_at')
       .eq('phone_number', cleanPhone)
-      .eq('used', false)
+      .eq('status', 'pending')
       .gt('expires_at', new Date().toISOString())
       .limit(1)
       .maybeSingle()
@@ -84,10 +84,10 @@ serve(async (req: Request) => {
     // Sebelum membuat OTP baru, invalidasi semua OTP lama yang mungkin tersisa
     // (misalnya yang sudah terlanjur expired tapi belum ditandai used)
     await supabaseAdmin
-      .from('password_reset_otps')
-      .update({ used: true })
+      .from('otp_requests')
+      .update({ status: 'expired' })
       .eq('phone_number', cleanPhone)
-      .eq('used', false)
+      .eq('status', 'pending')
 
     // === SEC-04: Generate OTP dengan crypto (bukan Math.random) ===
     // Math.random() tidak cryptographically secure — gunakan Web Crypto API
@@ -98,12 +98,12 @@ serve(async (req: Request) => {
 
     // Simpan OTP baru ke database
     const { error: otpError } = await supabaseAdmin
-      .from('password_reset_otps')
+      .from('otp_requests')
       .insert({
         phone_number: cleanPhone,
         otp_code: otp,
         expires_at: expiresAt,
-        used: false,
+        status: 'pending',
         attempt_count: 0,
       })
 
@@ -111,35 +111,47 @@ serve(async (req: Request) => {
       throw new Error('Gagal membuat kode OTP: ' + otpError.message)
     }
 
-    // SEC-02: Token Fonnte HANYA dari Supabase Secrets — tidak boleh dari DB
+    // SEC-02: Ambil Telegram Credentials
     // @ts-ignore: Deno context
-    const fonnteToken = Deno.env.get('FONNTE_TOKEN')
-    if (!fonnteToken) {
-      throw new Error('FONNTE_TOKEN belum dikonfigurasi di Supabase Secrets')
+    const telegramBotToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
+    // @ts-ignore: Deno context
+    const telegramChatId = Deno.env.get('TELEGRAM_CHAT_ID')
+
+    if (!telegramBotToken || !telegramChatId) {
+      console.warn('Telegram credentials not configured. OTP requested but not sent to Telegram.');
+    } else {
+      let waPhone = cleanPhone
+      if (waPhone.startsWith('0')) {
+        waPhone = '62' + waPhone.slice(1)
+      }
+
+      // Format URL Magic Link Fallback
+      // Membawa param phone agar jika user klik link dari WA, langsung membuka form verifikasi OTP.
+      const resetLink = `${ALLOWED_ORIGIN}/forgot-password?phone=${waPhone}`
+      const waText = `Halo ini Admin MESO.\nKode OTP Anda: ${otp}.\nKlik link berikut untuk melanjutkan: ${resetLink}`
+      const encodedWaText = encodeURIComponent(waText)
+      const waMeLink = `https://wa.me/${waPhone}?text=${encodedWaText}`
+
+      const tgMessage = `🚨 *Request OTP Baru!*\nNomor: \`+${waPhone}\`\nNama: ${profile.full_name}\n\n[Klik untuk Kirim WA ke Pasien](${waMeLink})`
+
+      const tgRes = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: telegramChatId,
+          text: tgMessage,
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true
+        })
+      })
+
+      if (!tgRes.ok) {
+        console.error('Failed to send Telegram message:', await tgRes.text())
+      }
     }
-
-    let fonntePhone = cleanPhone
-    if (fonntePhone.startsWith('0')) {
-      fonntePhone = '62' + fonntePhone.slice(1)
-    }
-
-    const message = `Halo Ibu/Bapak *${profile.full_name}*,\n\nKode OTP untuk mengatur ulang kata sandi Anda adalah *${otp}*.\n\nKode ini berlaku selama *5 menit*. Mohon tidak memberikan kode ini kepada siapa pun demi keamanan akun Anda.\n\nTerima kasih,\nMESO App`
-
-    const form = new FormData()
-    form.append('target', fonntePhone)
-    form.append('message', message)
-    form.append('countryCode', '62')
-
-    const fonnteRes = await fetch('https://api.fonnte.com/send', {
-      method: 'POST',
-      headers: { 'Authorization': fonnteToken },
-      body: form
-    })
-
-    const fonnteResult = await fonnteRes.json()
 
     return new Response(
-      JSON.stringify({ success: true, message: 'OTP berhasil dikirim ke WhatsApp Anda', details: fonnteResult }),
+      JSON.stringify({ success: true, message: 'Permintaan OTP telah diteruskan ke sistem.' }),
       { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
 

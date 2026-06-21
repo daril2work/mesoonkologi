@@ -3,7 +3,7 @@
 // Design: "Full Teal Hero" (Lumina Healing Design System)
 // Description: Automated WhatsApp OTP reset & Email recovery fallback
 // ============================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { KeyRound, Mail, CheckCircle2, Smartphone, ShieldCheck, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -21,8 +21,17 @@ export default function ForgotPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [userData, setUserData] = useState<any>(null)
-
   const navigate = useNavigate()
+
+  // Catch deep link param from WA
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const phoneParam = params.get('phone')
+    if (phoneParam) {
+      setUserData({ phone_number: phoneParam })
+      setStep(2)
+    }
+  }, [])
 
   // Mask email utility for premium privacy UX
   const maskEmail = (emailStr: string) => {
@@ -65,7 +74,7 @@ export default function ForgotPasswordPage() {
       // Check if user has WhatsApp number registered
       if (userProfile.phone_number && userProfile.phone_number.trim() !== '') {
         // WhatsApp Recovery flow
-        toast.loading('Mengirimkan kode OTP ke WhatsApp Anda...', { id: 'otp-send' })
+        toast.loading('Memproses permintaan pemulihan...', { id: 'otp-send' })
         const { data, error: funcError } = await supabase.functions.invoke('request-reset-otp', {
           body: { phone_number: userProfile.phone_number }
         })
@@ -75,7 +84,7 @@ export default function ForgotPasswordPage() {
           return
         }
 
-        toast.success('Kode OTP berhasil dikirim ke WhatsApp Anda!', { id: 'otp-send' })
+        toast.success('Permintaan pemulihan diteruskan. Silakan tunggu WA dari Admin.', { id: 'otp-send' })
         setStep(2)
       } else {
         // Fallback email flow (for legacy users)
@@ -256,7 +265,7 @@ export default function ForgotPasswordPage() {
               <div style={{ display: 'flex', gap: 10, background: '#e6f4f1', padding: '12px 16px', borderRadius: 16 }}>
                 <Smartphone size={18} color="#0d9488" style={{ flexShrink: 0, marginTop: 2 }} />
                 <p style={{ margin: 0, fontSize: 13, color: '#0f766e', lineHeight: 1.5 }}>
-                  <strong>Pemulihan Cepat WhatsApp:</strong> Sistem akan mengirim kode OTP langsung ke nomor WA terdaftar untuk verifikasi instan.
+                  <strong>Pemulihan via WhatsApp:</strong> Admin MESO akan memvalidasi dan mengirimkan kode pemulihan langsung ke nomor WA Anda.
                 </p>
               </div>
 
@@ -293,7 +302,7 @@ export default function ForgotPasswordPage() {
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 16px', borderRadius: 16, display: 'flex', gap: 10 }}>
                 <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: '#15803d', lineHeight: 1.4 }}>
-                  Kami telah mengirimkan 6-digit OTP ke nomor WhatsApp <strong>{userData?.phone_number}</strong>.
+                  Permintaan OTP untuk <strong>{userData?.phone_number}</strong> telah masuk ke sistem. Admin MESO akan segera mengirimkan kode OTP secara manual via WhatsApp. <strong>Harap bersabar menunggu.</strong>
                 </span>
               </div>
 

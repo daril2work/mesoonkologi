@@ -49,10 +49,10 @@ serve(async (req: Request) => {
 
     // === SEC-04: Cek OTP valid — sertakan attempt_count untuk brute-force protection ===
     const { data: otpData, error: otpError } = await supabaseAdmin
-      .from('password_reset_otps')
+      .from('otp_requests')
       .select('id, otp_code, attempt_count, expires_at')
       .eq('phone_number', cleanPhone)
-      .eq('used', false)
+      .eq('status', 'pending')
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
@@ -69,8 +69,8 @@ serve(async (req: Request) => {
     // Jika sudah mencapai batas percobaan, invalidasi OTP dan tolak
     if (otpData.attempt_count >= MAX_OTP_ATTEMPTS) {
       await supabaseAdmin
-        .from('password_reset_otps')
-        .update({ used: true })
+        .from('otp_requests')
+        .update({ status: 'expired' })
         .eq('id', otpData.id)
 
       return new Response(
@@ -84,7 +84,7 @@ serve(async (req: Request) => {
       // Increment attempt_count
       const newAttemptCount = otpData.attempt_count + 1
       await supabaseAdmin
-        .from('password_reset_otps')
+        .from('otp_requests')
         .update({ attempt_count: newAttemptCount })
         .eq('id', otpData.id)
 
@@ -116,8 +116,8 @@ serve(async (req: Request) => {
 
     // Tandai OTP sebagai sudah terpakai (one-time use — cegah replay attack)
     const { error: updateOtpError } = await supabaseAdmin
-      .from('password_reset_otps')
-      .update({ used: true })
+      .from('otp_requests')
+      .update({ status: 'verified' })
       .eq('id', otpData.id)
 
     if (updateOtpError) {
