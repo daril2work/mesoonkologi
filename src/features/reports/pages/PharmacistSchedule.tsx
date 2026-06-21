@@ -85,24 +85,18 @@ export default function PharmacistSchedule() {
       return
     }
 
-    const toastId = toast.loading('Mengirim reminder WA...')
-    try {
-      const msg = fonnteService.formatReminderMessage(
-        schedule.patientName,
-        format(new Date(schedule.scheduleDate), 'eeee, d MMMM yyyy', { locale: id }),
-        format(new Date(schedule.scheduleDate), 'HH:mm'),
-        schedule.title
-      )
-
-      await fonnteService.sendMessage({
-        target: schedule.patientPhone,
-        message: msg
-      })
-
-      toast.success('Reminder WA berhasil dikirim', { id: toastId })
-    } catch (error) {
-      toast.error('Gagal mengirim WA: ' + (error as Error).message, { id: toastId })
+    const formattedDate = format(new Date(schedule.scheduleDate), 'eeee, d MMMM yyyy', { locale: id })
+    const formattedTime = format(new Date(schedule.scheduleDate), 'HH:mm')
+    
+    const msg = `Halo ${schedule.patientName},\n\nIni adalah pengingat jadwal ${schedule.title} Anda di Klinik Eksekutif (Poli Onkologi) pada ${formattedDate} pukul ${formattedTime}.\n\nMohon hadir tepat waktu. Terima kasih.`
+    
+    let waPhone = schedule.patientPhone
+    if (waPhone.startsWith('0')) {
+      waPhone = '62' + waPhone.slice(1)
     }
+    
+    const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`
+    window.open(waUrl, '_blank')
   }
 
   const today = new Date()
