@@ -26,7 +26,7 @@ serve(async (req: Request) => {
     if (!phone_number || !otp_code) {
       return new Response(
         JSON.stringify({ error: 'Data tidak lengkap. Harap isi nomor telepon dan OTP.' }),
-        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -34,7 +34,7 @@ serve(async (req: Request) => {
     if (new_password && new_password.length < 6) {
       return new Response(
         JSON.stringify({ error: 'Kata sandi baru minimal harus 6 karakter.' }),
-        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -61,7 +61,7 @@ serve(async (req: Request) => {
     if (otpError || !otpData) {
       return new Response(
         JSON.stringify({ error: 'Tidak ada kode OTP aktif untuk nomor ini, atau kode telah kedaluwarsa.' }),
-        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -75,7 +75,7 @@ serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ error: 'Kode OTP telah diblokir karena terlalu banyak percobaan gagal. Silakan minta kode baru.' }),
-        { status: 429, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -95,7 +95,7 @@ serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ error: errorMessage }),
-        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 

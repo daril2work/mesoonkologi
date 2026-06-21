@@ -26,7 +26,7 @@ serve(async (req: Request) => {
     if (!phone_number) {
       return new Response(
         JSON.stringify({ error: 'Nomor telepon harus diisi' }),
-        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -61,7 +61,7 @@ serve(async (req: Request) => {
         JSON.stringify({
           error: `Kode OTP sudah dikirim. Tunggu ${remainingMins} menit sebelum meminta kode baru.`
         }),
-        { status: 429, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -76,7 +76,7 @@ serve(async (req: Request) => {
     if (profileError || !profile) {
       return new Response(
         JSON.stringify({ error: 'Nomor WhatsApp tidak terdaftar di sistem' }),
-        { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
