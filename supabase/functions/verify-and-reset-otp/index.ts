@@ -23,17 +23,17 @@ serve(async (req: Request) => {
 
   try {
     const { phone_number, otp_code, new_password } = await req.json()
-    if (!phone_number || !otp_code || !new_password) {
+    if (!phone_number || !otp_code) {
       return new Response(
-        JSON.stringify({ error: 'Data tidak lengkap. Harap isi nomor telepon, OTP, dan kata sandi baru.' }),
+        JSON.stringify({ error: 'Data tidak lengkap. Harap isi nomor telepon dan OTP.' }),
         { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Validasi panjang password minimum
-    if (new_password.length < 8) {
+    // Jika new_password diberikan, validasi panjangnya
+    if (new_password && new_password.length < 6) {
       return new Response(
-        JSON.stringify({ error: 'Kata sandi baru minimal harus 8 karakter.' }),
+        JSON.stringify({ error: 'Kata sandi baru minimal harus 6 karakter.' }),
         { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
@@ -111,6 +111,14 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ error: 'Akun dengan nomor telepon tersebut tidak ditemukan di profil' }),
         { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // === Jika hanya verifikasi OTP (belum reset password) ===
+    if (!new_password) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'OTP Valid. Silakan masukkan kata sandi baru.' }),
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       )
     }
 

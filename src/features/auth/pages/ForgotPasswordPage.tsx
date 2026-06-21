@@ -20,6 +20,7 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isOtpValid, setIsOtpValid] = useState(false)
   const [userData, setUserData] = useState<any>(null)
   const navigate = useNavigate()
 
@@ -116,11 +117,42 @@ export default function ForgotPasswordPage() {
     }
   }
 
-  // Step 2: Verify WhatsApp OTP and Reset Password
-  const handleVerifyOtp = async (e: React.FormEvent) => {
+  // Step 2a: Verify WhatsApp OTP Only
+  const handleVerifyOtpOnly = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!otpCode || !newPassword || !confirmPassword) {
-      toast.error('Mohon lengkapi semua kolom')
+    if (!otpCode) {
+      toast.error('Mohon isi kode OTP')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { data, error: verifyError } = await supabase.functions.invoke('verify-and-reset-otp', {
+        body: {
+          phone_number: userData.phone_number,
+          otp_code: otpCode.trim()
+        }
+      })
+
+      if (verifyError || (data && data.error)) {
+        toast.error('Verifikasi gagal: ' + (verifyError?.message || data?.error))
+        return
+      }
+
+      toast.success('OTP Valid! Silakan buat kata sandi baru.')
+      setIsOtpValid(true)
+    } catch (err: any) {
+      toast.error(err.message || 'Terjadi kesalahan tidak terduga.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Step 2b: Update Password
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newPassword || !confirmPassword) {
+      toast.error('Mohon lengkapi kata sandi baru')
       return
     }
 
@@ -136,7 +168,7 @@ export default function ForgotPasswordPage() {
 
     setIsLoading(true)
     try {
-      const { data, error: verifyError } = await supabase.functions.invoke('verify-and-reset-otp', {
+      const { data, error: resetError } = await supabase.functions.invoke('verify-and-reset-otp', {
         body: {
           phone_number: userData.phone_number,
           otp_code: otpCode.trim(),
@@ -144,8 +176,8 @@ export default function ForgotPasswordPage() {
         }
       })
 
-      if (verifyError || (data && data.error)) {
-        toast.error('Verifikasi gagal: ' + (verifyError?.message || data?.error))
+      if (resetError || (data && data.error)) {
+        toast.error('Gagal memperbarui: ' + (resetError?.message || data?.error))
         return
       }
 
@@ -297,8 +329,8 @@ export default function ForgotPasswordPage() {
           )}
 
           {/* STEP 2: Verify WhatsApp OTP */}
-          {step === 2 && (
-            <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
+          {step === 2 && !isOtpValid && (
+            <form onSubmit={handleVerifyOtpOnly} style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 16px', borderRadius: 16, display: 'flex', gap: 10 }}>
                 <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: '#15803d', lineHeight: 1.4 }}>
@@ -315,6 +347,55 @@ export default function ForgotPasswordPage() {
                 required
                 style={{ letterSpacing: '0.25em', fontSize: 18, textAlign: 'center', fontWeight: 'bold' }}
               />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                <span style={{ fontSize: 13, color: '#6e7979' }}>Tidak menerima kode?</span>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={isLoading}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#0d9488', textDecoration: 'underline', padding: '4px 0' }}
+                >
+                  Kirim Ulang OTP
+                </button>
+              </div>
+
+              <div style={{ flex: 1, minHeight: 16 }} />
+
+              <Button type="submit" isLoading={isLoading}>
+                Validasi OTP <span style={{ fontSize: 18 }}>→</span>
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  fontSize: 14, 
+                  fontWeight: 600, 
+                  color: '#6e7979', 
+                  fontFamily: 'inherit', 
+                  alignSelf: 'center', 
+                  padding: '8px 16px',
+                  minHeight: 36
+                }}
+              >
+                Kembali ke Step 1
+              </button>
+            </form>
+          )}
+
+          {/* STEP 2b: Input New Password */}
+          {step === 2 && isOtpValid && (
+            <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 16px', borderRadius: 16, display: 'flex', gap: 10 }}>
+                <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#15803d', lineHeight: 1.4 }}>
+                  Kode OTP Valid. Silakan buat kata sandi baru untuk akun Anda.
+                </span>
+              </div>
 
               <div>
                 <FormInput
@@ -344,42 +425,11 @@ export default function ForgotPasswordPage() {
                 required
               />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                <span style={{ fontSize: 13, color: '#6e7979' }}>Tidak menerima kode?</span>
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={isLoading}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#0d9488', textDecoration: 'underline', padding: '4px 0' }}
-                >
-                  Kirim Ulang OTP
-                </button>
-              </div>
-
               <div style={{ flex: 1, minHeight: 16 }} />
 
               <Button type="submit" isLoading={isLoading}>
                 Perbarui Kata Sandi <span style={{ fontSize: 18 }}>✓</span>
               </Button>
-
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  cursor: 'pointer', 
-                  fontSize: 14, 
-                  fontWeight: 600, 
-                  color: '#6e7979', 
-                  fontFamily: 'inherit', 
-                  alignSelf: 'center', 
-                  padding: '8px 16px',
-                  minHeight: 36
-                }}
-              >
-                Kembali ke Step 1
-              </button>
             </form>
           )}
 
