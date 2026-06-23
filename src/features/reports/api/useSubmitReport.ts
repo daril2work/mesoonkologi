@@ -8,7 +8,7 @@ import { useAuthStore } from '@features/auth/store'
 import toast from 'react-hot-toast'
 import { detectSentinel, autoGrade } from '@utils/sentinel'
 import { logger } from '@utils/logger'
-import { fonnteService } from '@/services/fonnte.service'
+import { whatsappService } from '@/services/whatsapp.service'
 
 export function useSubmitReport() {
   const queryClient = useQueryClient()

@@ -7,7 +7,7 @@ export interface WAOptions {
   schedule?: number // Unix timestamp in seconds for scheduled sending
 }
 
-export const fonnteService = {
+export const whatsappService = {
   /**
    * Send a WhatsApp message via Supabase Edge Function
    */
@@ -20,13 +20,16 @@ export const fonnteService = {
       if (error) throw error
       
       if (!data.status) {
-        throw new Error(data.reason || 'Gagal mengirim pesan WA via Edge Function')
+        // Fallback untuk Meta Graph API yang mungkin mengembalikan format berbeda
+        if (data.messages && data.messages.length > 0) {
+           return data
+        }
+        throw new Error(data.reason || data.error?.message || 'Gagal mengirim pesan WA via Edge Function')
       }
 
       return data
     } catch (error) {
-      // Perhatikan: logger.error bisa digunakan di sini jika sudah diimport
-      console.error('[FonnteService Error]', error)
+      console.error('[WhatsAppService Error]', error)
       throw error
     }
   },

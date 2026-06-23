@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import PharmacistLayout from '../components/PharmacistLayout'
 import { useAuthStore } from '@features/auth/store'
 import { toast } from 'react-hot-toast'
-import { fonnteService } from '@/services/fonnte.service'
+import { whatsappService } from '@/services/whatsapp.service'
 import UserManagementPanel from '../components/UserManagementPanel'
 import {
   useSystemSettings,
@@ -63,7 +63,7 @@ export default function PharmacistSettings() {
     if (!pharmacistWa) return toast.error('Nomor WA Apoteker belum diisi')
     setIsTestingPharma(true)
     try {
-      await fonnteService.sendMessage({
+      await whatsappService.sendMessage({
         target: pharmacistWa,
         message: 'CITO! [TEST] Ini adalah pesan tes untuk Apoteker Jaga dari sistem MESO.'
       })
@@ -79,7 +79,7 @@ export default function PharmacistSettings() {
     if (!doctorWa) return toast.error('Nomor WA Dokter belum diisi')
     setIsTestingDoctor(true)
     try {
-      await fonnteService.sendMessage({
+      await whatsappService.sendMessage({
         target: doctorWa,
         message: 'CITO! [TEST] Ini adalah pesan tes untuk Dokter Jaga dari sistem MESO.'
       })
