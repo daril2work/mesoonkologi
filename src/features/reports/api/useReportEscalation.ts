@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { logger } from '@utils/logger'
-import { fonnteService } from '@/services/fonnte.service'
 
 export function useReportEscalation() {
   const queryClient = useQueryClient()
@@ -34,27 +33,20 @@ export function useReportEscalation() {
         queryClient.invalidateQueries({ queryKey: ['patientDetail', patientId] })
       }
 
-      // Alert Dokter Jaga jika laporan berhasil dieskalasi
+      // Alert via Telegram untuk diteruskan ke Dokter Jaga
       const sendAlert = async () => {
         try {
-          const { data: settingData, error: settingError } = await supabase
-            .from('system_settings')
-            .select('value')
-            .eq('key', 'doctor_wa')
-            .single()
+          const { data, error } = await supabase.functions.invoke('send-telegram', {
+            body: { reportId: variables.reportId }
+          })
 
-          if (settingError) throw settingError
-
-          const recipient = settingData?.value
-          if (recipient) {
-            await fonnteService.sendMessage({
-              target: recipient,
-              message: 'CITO! Ada laporan MESO yang perlu anda tindak lanjuti segera!'
-            })
-            logger.info('[Escalation WA Alert] Alert successfully sent to doctor', { recipient })
+          if (error || (data && data.error)) {
+            throw new Error(error?.message || data?.error || 'Unknown error')
           }
+          
+          logger.info('[Escalation Telegram Alert] Successfully sent to Telegram', { reportId: variables.reportId })
         } catch (err: unknown) {
-          logger.error('[Escalation WA Alert Error]', err instanceof Error ? err.message : err)
+          logger.error('[Escalation Telegram Alert Error]', err instanceof Error ? err.message : err)
         }
       }
       sendAlert()

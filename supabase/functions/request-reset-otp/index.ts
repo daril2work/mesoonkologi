@@ -132,7 +132,13 @@ serve(async (req: Request) => {
       const encodedWaText = encodeURIComponent(waText)
       const waMeLink = `https://wa.me/${waPhone}?text=${encodedWaText}`
 
-      const tgMessage = `🚨 *Request OTP Baru!*\nNomor: \`+${waPhone}\`\nNama: ${profile.full_name}\n\n[Klik untuk Kirim WA ke Pasien](${waMeLink})`
+      // Escape HTML characters to prevent parse errors
+      const safeName = (profile.full_name || 'Tanpa Nama')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+
+      const tgMessage = `🚨 <b>Request OTP Baru!</b>\nNomor: <code>+${waPhone}</code>\nNama: ${safeName}\n\n<a href="${waMeLink}">Klik untuk Kirim WA ke Pasien</a>`
 
       const tgRes = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
         method: 'POST',
@@ -140,7 +146,7 @@ serve(async (req: Request) => {
         body: JSON.stringify({
           chat_id: telegramChatId,
           text: tgMessage,
-          parse_mode: 'Markdown',
+          parse_mode: 'HTML',
           disable_web_page_preview: true
         })
       })
