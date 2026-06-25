@@ -131,7 +131,7 @@ export default function ClinicianPatientDetail() {
                           "text-[9px] md:text-[10px] font-black uppercase tracking-widest",
                           color === 'red' ? "text-red-600" : color === 'purple' ? "text-purple-600" : "text-teal-600"
                         )}>{s.label}</p>
-                        <p className="text-xl md:text-3xl font-black headline-font text-stone-700">{s.value}/5</p>
+                        <p className="text-xl md:text-3xl font-black font-headline text-stone-700">{s.value}/5</p>
                     </div>
                 </div>
               )
@@ -161,7 +161,7 @@ export default function ClinicianPatientDetail() {
                 <div className="space-y-1">
                    <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">SKOR RATA-RATA</p>
                    {/* C-03: QoL dari data, bukan hardcoded 76% */}
-                   <p className="text-5xl md:text-7xl font-black headline-font text-[#006a60]">
+                   <p className="text-5xl md:text-7xl font-black font-headline text-[#006a60]">
                      {patient.qolScore != null ? `${patient.qolScore}%` : '—'}
                    </p>
                 </div>

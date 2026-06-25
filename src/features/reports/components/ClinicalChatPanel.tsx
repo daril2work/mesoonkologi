@@ -40,7 +40,7 @@ export function ClinicalChatPanel({ patientId, patientFirstName }: ClinicalChatP
       <div className="p-6 bg-white flex items-center justify-between border-b border-stone-50 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-          <h3 className="font-bold headline-font text-on-surface">Diskusi Pasien</h3>
+          <h3 className="font-bold font-headline text-on-surface">Diskusi Pasien</h3>
         </div>
         <span className="text-[9px] font-black bg-stone-100 px-3 py-1 rounded-lg text-stone-500 uppercase tracking-widest">
           Live Connect

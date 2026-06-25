@@ -198,7 +198,7 @@ export default function ClinicianWatchlist() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-black text-stone-700 headline-font">{report.patient?.fullName}</h3>
+                    <h3 className="text-xl font-black text-stone-700 font-headline">{report.patient?.fullName}</h3>
                     <p className="text-xs font-black text-stone-400 uppercase tracking-widest">ID: #P-{report.patient?.id.slice(0, 5).toUpperCase()}</p>
                     <div className="flex items-center gap-2 mt-2">
                        <span className="material-symbols-outlined text-[#006a60] text-sm">bed</span>
@@ -237,7 +237,7 @@ export default function ClinicianWatchlist() {
                <div className="flex flex-wrap justify-between items-center gap-6 md:pr-10">
                   {stats.map((stat, idx) => (
                     <div key={idx} className="flex flex-col gap-1 md:gap-2">
-                       <span className="text-2xl md:text-4xl font-black headline-font text-white">{stat.value}</span>
+                       <span className="text-2xl md:text-4xl font-black font-headline text-white">{stat.value}</span>
                        <span className="text-[9px] md:text-[10px] font-black text-white/50 uppercase tracking-widest">{stat.label}</span>
                     </div>
                   ))}

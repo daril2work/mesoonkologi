@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { toast } from 'react-hot-toast'
 import { useAuthStore } from '@features/auth/store'
+import { logger } from '@utils/logger'
 
 export function usePatientActions(patientId?: string) {
   const queryClient = useQueryClient()
@@ -131,7 +132,7 @@ export function usePatientActions(patientId?: string) {
       )
       return true
     } catch (err) {
-      console.error('Failed to toggle QoL active state:', err)
+      logger.error('Failed to toggle QoL active state:', err instanceof Error ? err : undefined)
       toast.error('Gagal memperbarui status QoL.')
       return false
     } finally {

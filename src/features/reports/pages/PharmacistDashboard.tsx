@@ -48,7 +48,7 @@ export default function PharmacistDashboard() {
         {/* HEADER SECTION */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
           <div>
-            <h2 className="headline-font text-2xl sm:text-3xl font-extrabold text-on-surface mb-2">Antrean Laporan</h2>
+            <h2 className="font-headline text-2xl sm:text-3xl font-extrabold text-on-surface mb-2">Antrean Laporan</h2>
             <p className="text-on-surface-variant text-sm font-medium">Tinjau laporan harian pasien dan berikan respon klinis.</p>
           </div>
           <div className="flex gap-3 relative w-full sm:w-auto justify-end">
@@ -110,7 +110,7 @@ export default function PharmacistDashboard() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-tertiary"></span>
-              <h3 className="headline-font font-bold text-lg text-tertiary">Laporan Prioritas (Major)</h3>
+              <h3 className="font-headline font-bold text-lg text-tertiary">Laporan Prioritas (Major)</h3>
             </div>
             
             <div className="grid grid-cols-1 gap-4">
@@ -132,7 +132,7 @@ export default function PharmacistDashboard() {
           <section className="mt-8">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-primary"></span>
-              <h3 className="headline-font font-bold text-lg text-primary">Laporan Rutin (Minor)</h3>
+              <h3 className="font-headline font-bold text-lg text-primary">Laporan Rutin (Minor)</h3>
             </div>
             
             <div className="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
@@ -279,7 +279,7 @@ export default function PharmacistDashboard() {
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 bg-primary-container/30 p-6 sm:p-8 rounded-lg relative overflow-hidden flex items-center">
             <div className="relative z-10">
-              <p className="headline-font font-bold text-primary text-lg sm:text-xl mb-2">Tips Respon Empati</p>
+              <p className="font-headline font-bold text-primary text-lg sm:text-xl mb-2">Tips Respon Empati</p>
               <p className="text-on-primary-container text-xs sm:text-sm leading-relaxed max-w-lg italic">
                 {majorReports.length > 0 
                   ? `"${majorReports[0].patient.fullName.split(' ')[0]} sedang di siklus kritis. Pastikan memberikan edukasi tentang hidrasi dan penggunaan antiemetik sesuai jadwal."`

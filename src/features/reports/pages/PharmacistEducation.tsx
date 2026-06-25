@@ -142,7 +142,7 @@ export default function PharmacistEducation() {
         {/* Top Bar Section */}
         <header className="px-4 sm:px-8 lg:px-10 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-container bg-white/80 backdrop-blur-xl sticky top-0 z-30">
           <div>
-            <h2 className="text-2xl sm:text-3xl headline-font font-black text-on-surface tracking-tight">Manajemen Edukasi</h2>
+            <h2 className="text-2xl sm:text-3xl font-headline font-black text-on-surface tracking-tight">Manajemen Edukasi</h2>
             <p className="text-on-surface-variant text-xs sm:text-sm mt-1 font-medium">Kurasi materi untuk mendukung perjalanan pemulihan pasien.</p>
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -193,7 +193,7 @@ export default function PharmacistEducation() {
               </div>
               <div>
                 <p className="text-[10px] font-black text-tertiary/60 uppercase tracking-[0.2em] mb-1">Database Edukasi</p>
-                <p className="text-3xl font-black text-on-surface headline-font tracking-tight">{materials?.length ?? 0} <span className="text-sm font-bold text-stone-400">Total</span></p>
+                <p className="text-3xl font-black text-on-surface font-headline tracking-tight">{materials?.length ?? 0} <span className="text-sm font-bold text-stone-400">Total</span></p>
               </div>
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function PharmacistEducation() {
                       <span className="material-symbols-outlined text-xs sm:text-sm text-yellow-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Materi Unggulan</span>
                     </div>
-                    <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl headline-font font-black text-white mb-4 leading-tight tracking-tight">{featuredMaterial.title}</h3>
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-headline font-black text-white mb-4 leading-tight tracking-tight">{featuredMaterial.title}</h3>
                     <p className="text-white/75 text-xs sm:text-sm md:text-base lg:text-lg mb-6 sm:mb-8 md:mb-10 max-w-xl font-medium leading-relaxed">{featuredMaterial.description || 'Materi pilihan terbaik untuk mendukung pemulihan pasien.'}</p>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
                       <button onClick={(e) => { e.stopPropagation(); handleOpenEdit(featuredMaterial); }} className="bg-white text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 shadow-xl w-full sm:w-auto text-center font-body">Edit Konten</button>
@@ -275,7 +275,7 @@ export default function PharmacistEducation() {
                     </div>
                   </div>
                   <div className="px-10 pb-10 pt-4 flex flex-col flex-1">
-                    <h3 className="text-2xl font-black text-on-surface mb-3 headline-font leading-tight group-hover:text-primary transition-colors tracking-tight">{item.title}</h3>
+                    <h3 className="text-2xl font-black text-on-surface mb-3 font-headline leading-tight group-hover:text-primary transition-colors tracking-tight">{item.title}</h3>
                     <p className="text-on-surface-variant text-sm line-clamp-2 mb-8 font-medium leading-relaxed opacity-70">{item.description}</p>
                     <div className="mt-auto flex flex-wrap items-center justify-between pt-6 border-t border-stone-50 gap-4">
                       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -291,10 +291,14 @@ export default function PharmacistEducation() {
                           <span className="material-symbols-outlined text-lg sm:text-xl">edit</span>
                         </button>
                         <button 
-                            onClick={(e) => {
+                            onClick={async (e) => {
                                 e.stopPropagation();
-                                navigator.clipboard.writeText(item.videoUrl || window.location.href);
-                                toast.success('Tautan disalin!');
+                                try {
+                                    await navigator.clipboard.writeText(item.videoUrl || window.location.href);
+                                    toast.success('Tautan disalin!');
+                                } catch {
+                                    toast.error('Gagal menyalin tautan. Coba salin manual.');
+                                }
                             }}
                             className="p-2 sm:p-3 text-stone-300 hover:text-primary hover:bg-primary-container/30 rounded-2xl transition-all active:scale-90"
                             title="Salin Tautan"
@@ -329,7 +333,7 @@ export default function PharmacistEducation() {
               <div className="p-6 sm:p-12 overflow-y-auto">
                 <div className="flex justify-between items-start mb-10">
                     <div>
-                        <h2 className="headline-font text-3xl font-black text-on-surface tracking-tight">{editTargetId ? 'Edit Materi' : 'Upload Materi'}</h2>
+                        <h2 className="font-headline text-3xl font-black text-on-surface tracking-tight">{editTargetId ? 'Edit Materi' : 'Upload Materi'}</h2>
                         <p className="text-sm font-medium text-stone-500 mt-1">{editTargetId ? 'Ubah informasi konten edukasi ini.' : 'Tambahkan konten edukasi baru ke perpustakaan digital.'}</p>
                     </div>
                     <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-400">

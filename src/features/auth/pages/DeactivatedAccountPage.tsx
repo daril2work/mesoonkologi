@@ -7,6 +7,7 @@ import { useAuthStore } from '../store'
 import { ROUTES } from '@configs/app.config'
 import { ShieldAlert, LogOut, HeartHandshake } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { logger } from '@utils/logger'
 
 export default function DeactivatedAccountPage() {
   const navigate = useNavigate()
@@ -17,8 +18,10 @@ export default function DeactivatedAccountPage() {
       await logout()
       toast.success('Berhasil keluar dari sistem.')
       navigate(ROUTES.LOGIN)
-    } catch (err: any) {
-      toast.error('Gagal keluar: ' + err.message)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error('Gagal keluar: ' + message)
+      logger.error('[DeactivatedAccountPage]', err instanceof Error ? err : undefined)
     }
   }
 

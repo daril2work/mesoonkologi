@@ -102,14 +102,11 @@ export function camelToWords(str: string): string {
 export function exportToCSV(data: any[], filename: string) {
   if (data.length === 0) return
 
-  const headers = Object.keys(data[0]).join(',')
+  const escapeCSV = (val: any) => `"${String(val).replace(/"/g, '""')}"`
+
+  const headers = Object.keys(data[0]).map(escapeCSV).join(',')
   const rows = data.map(obj => 
-    Object.values(obj)
-      .map(val => {
-        const str = String(val).replace(/"/g, '""')
-        return `"${str}"`
-      })
-      .join(',')
+    Object.values(obj).map(escapeCSV).join(',')
   )
 
   const csvContent = [headers, ...rows].join('\n')

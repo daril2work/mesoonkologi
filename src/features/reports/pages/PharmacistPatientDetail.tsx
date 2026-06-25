@@ -86,7 +86,7 @@ export default function PharmacistPatientDetail() {
           </Link>
           <div className="h-4 w-px bg-stone-300 mx-1 sm:mx-2 shrink-0" />
           <div className="flex flex-col min-w-0">
-            <span className="font-extrabold text-primary text-xs sm:text-sm headline-font truncate">Detail Pasien</span>
+            <span className="font-extrabold text-primary text-xs sm:text-sm font-headline truncate">Detail Pasien</span>
             <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-black tracking-tight truncate">
               ID: SN-{id.slice(0, 8).toUpperCase()}
             </span>
@@ -208,7 +208,7 @@ export default function PharmacistPatientDetail() {
                 <div className="flex items-center justify-between gap-4 border-b border-stone-50 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-stone-400">history</span>
-                    <h4 className="text-sm font-black text-stone-500 uppercase tracking-widest headline-font">Riwayat Pelaporan Gejala</h4>
+                    <h4 className="text-sm font-black text-stone-500 uppercase tracking-widest font-headline">Riwayat Pelaporan Gejala</h4>
                   </div>
                   
                   {/* Pagination Buttons */}

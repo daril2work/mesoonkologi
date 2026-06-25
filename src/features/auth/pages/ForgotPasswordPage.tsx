@@ -11,6 +11,13 @@ import { FormInput } from '@components/ui/FormInput'
 import { Button } from '@components/ui/Button'
 import { supabase } from '@lib/supabase'
 import { ROUTES } from '@configs/app.config'
+import { logger } from '@utils/logger'
+
+interface ForgotPasswordUserData {
+  id: string
+  phone_number: string | null
+  email: string | null
+}
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1) // 1: Input search, 2: WA OTP, 3: Reset Success, 4: Email Sent Fallback
@@ -21,7 +28,7 @@ export default function ForgotPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isOtpValid, setIsOtpValid] = useState(false)
-  const [userData, setUserData] = useState<any>(null)
+  const [userData, setUserData] = useState<Partial<ForgotPasswordUserData> | null>(null)
   const navigate = useNavigate()
 
   // Catch deep link param from WA
@@ -110,8 +117,10 @@ export default function ForgotPasswordPage() {
         setStep(4)
       }
 
-    } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan tidak terduga.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error(message)
+      logger.error('[ForgotPasswordPage]', err instanceof Error ? err : undefined)
     } finally {
       setIsLoading(false)
     }
@@ -124,6 +133,8 @@ export default function ForgotPasswordPage() {
       toast.error('Mohon isi kode OTP')
       return
     }
+
+    if (!userData) return toast.error('Data pengguna tidak ditemukan')
 
     setIsLoading(true)
     try {
@@ -141,8 +152,10 @@ export default function ForgotPasswordPage() {
 
       toast.success('OTP Valid! Silakan buat kata sandi baru.')
       setIsOtpValid(true)
-    } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan tidak terduga.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error(message)
+      logger.error('[ForgotPasswordPage]', err instanceof Error ? err : undefined)
     } finally {
       setIsLoading(false)
     }
@@ -166,6 +179,8 @@ export default function ForgotPasswordPage() {
       return
     }
 
+    if (!userData) return toast.error('Data pengguna tidak ditemukan')
+
     setIsLoading(true)
     try {
       const { data, error: resetError } = await supabase.functions.invoke('verify-and-reset-otp', {
@@ -183,8 +198,10 @@ export default function ForgotPasswordPage() {
 
       toast.success('Kata sandi berhasil diperbarui!')
       setStep(3)
-    } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan tidak terduga.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error(message)
+      logger.error('[ForgotPasswordPage]', err instanceof Error ? err : undefined)
     } finally {
       setIsLoading(false)
     }
@@ -206,8 +223,10 @@ export default function ForgotPasswordPage() {
       }
 
       toast.success('Kode OTP baru telah dikirim ke WhatsApp!', { id: 'otp-resend' })
-    } catch (err: any) {
-      toast.error('Terjadi kesalahan saat mengirim ulang OTP.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error('Terjadi kesalahan saat mengirim ulang OTP: ' + message)
+      logger.error('[ForgotPasswordPage]', err instanceof Error ? err : undefined)
     } finally {
       setIsLoading(false)
     }
@@ -469,7 +488,7 @@ export default function ForgotPasswordPage() {
                   Email Pemulihan Dikirim!
                 </h2>
                 <p style={{ fontSize: 15, color: '#6e7979', lineHeight: 1.6, margin: 0 }}>
-                  Karena nomor WhatsApp belum ditambahkan ke profil Anda, kami telah mengirimkan tautan penyetelan ulang sandi klasik secara otomatis ke email terdaftar: <strong style={{ color: '#1b1c1b' }}>{maskEmail(userData?.email)}</strong>.
+                  Karena nomor WhatsApp belum ditambahkan ke profil Anda, kami telah mengirimkan tautan penyetelan ulang sandi klasik secara otomatis ke email terdaftar: <strong style={{ color: '#1b1c1b' }}>{maskEmail(userData?.email || '')}</strong>.
                 </p>
                 <p style={{ fontSize: 13, color: '#8c9594', lineHeight: 1.5, marginTop: 12 }}>
                   Silakan periksa folder kotak masuk/spam Anda. Setelah masuk, jangan lupa memperbarui nomor WhatsApp Anda di modal Profil.

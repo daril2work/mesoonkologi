@@ -41,7 +41,7 @@ export default function PharmacistReportForm() {
         
         {/* Header Section */}
         <div className="mb-10">
-          <h2 className="text-3xl headline-font font-extrabold text-on-surface mb-2">Input Laporan Manual</h2>
+          <h2 className="text-3xl font-headline font-extrabold text-on-surface mb-2">Input Laporan Manual</h2>
           <p className="text-on-surface-variant font-medium">Gunakan formulir ini jika pasien melapor melalui telepon atau secara langsung.</p>
         </div>
 
@@ -53,7 +53,7 @@ export default function PharmacistReportForm() {
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <User size={20} />
               </div>
-              <h3 className="text-lg font-bold text-on-surface headline-font">Pilih Pasien</h3>
+              <h3 className="text-lg font-bold text-on-surface font-headline">Pilih Pasien</h3>
             </div>
             
             <div className="relative">
@@ -76,7 +76,7 @@ export default function PharmacistReportForm() {
 
           {/* Symptoms Section */}
           <section className="space-y-6">
-            <h3 className="text-lg font-bold text-on-surface headline-font px-2">Gejala & Kondisi Pasien</h3>
+            <h3 className="text-lg font-bold text-on-surface font-headline px-2">Gejala & Kondisi Pasien</h3>
             <div className="grid grid-cols-1 gap-4">
               {SYMPTOMS_UI_CONFIG.map((symptom) => {
                 const currentValue = (formData[symptom.key as keyof SymptomData] ?? null) as number | null

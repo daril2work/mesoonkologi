@@ -13,7 +13,7 @@ import {
   useSystemSettings,
   useSaveWaSettings,
   useSaveFonnteToken,
-  checkFonnteStatusViaServer,
+  useFonnteStatus,
 } from '../api/useSystemSettings'
 
 export default function PharmacistSettings() {
@@ -24,7 +24,6 @@ export default function PharmacistSettings() {
   const [doctorWa, setDoctorWa] = useState('')
   const [fonnteToken, setFonnteToken] = useState('')
   const [showToken, setShowToken] = useState(false)
-  const [fonnteStatus, setFonnteStatus] = useState<'loading' | 'connect' | 'disconnect' | 'invalid'>('loading')
   const [isTestingPharma, setIsTestingPharma] = useState(false)
   const [isTestingDoctor, setIsTestingDoctor] = useState(false)
   const [activeTab, setActiveTab] = useState<'profile' | 'users'>('profile')
@@ -42,10 +41,8 @@ export default function PharmacistSettings() {
     }
   }, [settings])
 
-  // SMELL-05: Cek status Fonnte via Edge Function — token tidak pernah ke browser
-  useEffect(() => {
-    checkFonnteStatusViaServer().then(setFonnteStatus)
-  }, [])
+  // SMELL-05 & GOD-02: Gunakan React Query hook
+  const { data: fonnteStatus = 'loading' } = useFonnteStatus()
 
   const handleSaveSettings = () => {
     saveWaSettings.mutate({ pharmacistWa, doctorWa })
@@ -53,41 +50,22 @@ export default function PharmacistSettings() {
 
   const handleSaveFonnteToken = async () => {
     await saveFonnteToken.mutateAsync(fonnteToken.trim())
-    // Re-check status setelah token baru disimpan
-    setFonnteStatus('loading')
-    const newStatus = await checkFonnteStatusViaServer()
-    setFonnteStatus(newStatus)
+    // Note: Invalidasi query dilakukan otomatis di dalam mutasi `saveFonnteToken`
   }
 
-  const handleTestPharma = async () => {
-    if (!pharmacistWa) return toast.error('Nomor WA Apoteker belum diisi')
-    setIsTestingPharma(true)
+  const handleTestWA = async (phone: string, recipientLabel: string, setLoading: (v: boolean) => void) => {
+    if (!phone) return toast.error(`Nomor WA ${recipientLabel} belum diisi`)
+    setLoading(true)
     try {
       await whatsappService.sendMessage({
-        target: pharmacistWa,
-        message: 'CITO! [TEST] Ini adalah pesan tes untuk Apoteker Jaga dari sistem MESO.'
+        target: phone,
+        message: `CITO! [TEST] Ini adalah pesan tes untuk ${recipientLabel} dari sistem MESO.`
       })
-      toast.success('Pesan tes berhasil dikirim ke Apoteker!')
+      toast.success(`Pesan tes berhasil dikirim ke ${recipientLabel}!`)
     } catch (error) {
-      toast.error('Gagal mengirim pesan tes ke Apoteker.')
+      toast.error(`Gagal mengirim pesan tes ke ${recipientLabel}.`)
     } finally {
-      setIsTestingPharma(false)
-    }
-  }
-
-  const handleTestDoctor = async () => {
-    if (!doctorWa) return toast.error('Nomor WA Dokter belum diisi')
-    setIsTestingDoctor(true)
-    try {
-      await whatsappService.sendMessage({
-        target: doctorWa,
-        message: 'CITO! [TEST] Ini adalah pesan tes untuk Dokter Jaga dari sistem MESO.'
-      })
-      toast.success('Pesan tes berhasil dikirim ke Dokter!')
-    } catch (error) {
-      toast.error('Gagal mengirim pesan tes ke Dokter.')
-    } finally {
-      setIsTestingDoctor(false)
+      setLoading(false)
     }
   }
 
@@ -95,7 +73,7 @@ export default function PharmacistSettings() {
     <PharmacistLayout>
       <div className="p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto">
         <header className="mb-6 sm:mb-8">
-          <h2 className="headline-font text-3xl sm:text-4xl font-black text-on-surface mb-2">Pengaturan Akun</h2>
+          <h2 className="font-headline text-3xl sm:text-4xl font-black text-on-surface mb-2">Pengaturan Akun</h2>
           <p className="text-on-surface-variant text-sm sm:text-base font-medium">Kelola informasi profil dan preferensi sistem Anda.</p>
         </header>
 
@@ -228,7 +206,7 @@ export default function PharmacistSettings() {
                             onChange={(e) => setPharmacistWa(e.target.value)}
                           />
                           <button
-                            onClick={handleTestPharma}
+                            onClick={() => handleTestWA(pharmacistWa, 'Apoteker', setIsTestingPharma)}
                             disabled={isTestingPharma || !pharmacistWa}
                             className="bg-stone-100 hover:bg-stone-200 text-stone-600 px-4 py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-50 whitespace-nowrap"
                           >
@@ -249,7 +227,7 @@ export default function PharmacistSettings() {
                             onChange={(e) => setDoctorWa(e.target.value)}
                           />
                           <button
-                            onClick={handleTestDoctor}
+                            onClick={() => handleTestWA(doctorWa, 'Dokter', setIsTestingDoctor)}
                             disabled={isTestingDoctor || !doctorWa}
                             className="bg-stone-100 hover:bg-stone-200 text-stone-600 px-4 py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-50 whitespace-nowrap"
                           >

@@ -85,13 +85,13 @@ export function SymptomReportGrid({ symptoms, reportDate }: SymptomReportGridPro
                     {icon}
                   </span>
                 </div>
-                <span className={clsx('text-3xl font-black headline-font', isCritical ? 'text-tertiary' : 'text-primary')}>
+                <span className={clsx('text-3xl font-black font-headline', isCritical ? 'text-tertiary' : 'text-primary')}>
                   {symptom.value}
                   <span className="text-sm font-bold text-stone-300">/5</span>
                 </span>
               </div>
 
-              <h4 className="font-extrabold text-on-surface mb-2 headline-font">{symptom.label}</h4>
+              <h4 className="font-extrabold text-on-surface mb-2 font-headline">{symptom.label}</h4>
 
               {/* Progress bar */}
               <div className="w-full bg-stone-100 h-2.5 rounded-full overflow-hidden border border-stone-50">

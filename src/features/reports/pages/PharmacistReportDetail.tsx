@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@lib/supabase'
 import { ROUTES } from '@configs/app.config'
 import { AppLoader } from '@components/ui/AppLoader'
+import { logger } from '@utils/logger'
 
 /**
  * M-01 Implementation (Option B):
@@ -36,7 +37,7 @@ export default function PharmacistReportDetail() {
           throw new Error('Patient ID not found for this report')
         }
       } catch (err) {
-        console.error('[PharmacistReportDetail] Redirect Error:', err)
+        logger.error('[PharmacistReportDetail] Redirect Error:', err instanceof Error ? err : undefined)
         navigate(ROUTES.PHARMA_DASHBOARD, { replace: true })
       }
     }

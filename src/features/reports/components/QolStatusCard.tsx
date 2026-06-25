@@ -96,7 +96,7 @@ export function QolStatusCard({ qol }: QolStatusCardProps) {
             <span className="material-symbols-outlined text-2xl font-bold">spa</span>
           </div>
           <div>
-            <h4 className="text-base font-extrabold text-stone-800 headline-font">Pemantauan Kualitas Hidup (QoL)</h4>
+            <h4 className="text-base font-extrabold text-stone-800 font-headline">Pemantauan Kualitas Hidup (QoL)</h4>
             <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-0.5">Metode EQ-5D-3L</p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export function QolStatusCard({ qol }: QolStatusCardProps) {
             </span>
           </div>
           <div className="h-10 w-px bg-stone-100" />
-          <span className="text-3xl font-black text-emerald-700 headline-font tracking-tighter">
+          <span className="text-3xl font-black text-emerald-700 font-headline tracking-tighter">
             {qolPercentage}%
           </span>
         </div>

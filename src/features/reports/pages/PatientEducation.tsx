@@ -123,13 +123,13 @@ export default function PatientEducation() {
                     Mulai Membaca
                   </button>
                   <button 
-                    onClick={() => {
-                      if (featured.videoUrl) {
-                        navigator.clipboard.writeText(featured.videoUrl);
+                    onClick={async () => {
+                      const urlToCopy = featured.videoUrl || window.location.href;
+                      try {
+                        await navigator.clipboard.writeText(urlToCopy);
                         toast.success('Tautan disalin!');
-                      } else {
-                        navigator.clipboard.writeText(window.location.href);
-                        toast.success('Tautan disalin!');
+                      } catch {
+                        toast.error('Gagal menyalin tautan. Coba salin manual.');
                       }
                     }}
                     style={{
@@ -367,14 +367,14 @@ function MaterialCard({ item, index, onOpen }: { item: EducationMaterial; index:
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button 
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                if (item.videoUrl) {
-                  navigator.clipboard.writeText(item.videoUrl);
+                const urlToCopy = item.videoUrl || window.location.href;
+                try {
+                  await navigator.clipboard.writeText(urlToCopy);
                   toast.success('Tautan disalin!');
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success('Tautan disalin!');
+                } catch {
+                  toast.error('Gagal menyalin tautan. Coba salin manual.');
                 }
               }}
               style={{

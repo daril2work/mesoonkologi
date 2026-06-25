@@ -20,7 +20,7 @@ export function DietaryStatusCard({ items }: DietaryStatusCardProps) {
     <div className="bg-stone-50/50 rounded-2xl p-6 border border-stone-100">
       <div className="flex items-center gap-2 mb-6">
         <span className="material-symbols-outlined text-stone-400">restaurant</span>
-        <h4 className="text-sm font-black text-stone-500 uppercase tracking-widest headline-font">Status Nutrisi</h4>
+        <h4 className="text-sm font-black text-stone-500 uppercase tracking-widest font-headline">Status Nutrisi</h4>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -28,7 +28,7 @@ export function DietaryStatusCard({ items }: DietaryStatusCardProps) {
           <div key={idx} className="bg-white p-4 rounded-xl border border-stone-100 shadow-sm">
             <p className="text-[10px] font-bold text-stone-400 uppercase tracking-tight mb-1">{item.label}</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-primary headline-font">{item.value}</span>
+              <span className="text-xl font-black text-primary font-headline">{item.value}</span>
               {item.unit && <span className="text-[10px] font-bold text-stone-400 uppercase">{item.unit}</span>}
             </div>
             

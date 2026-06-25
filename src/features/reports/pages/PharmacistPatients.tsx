@@ -2,16 +2,19 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import PharmacistLayout from '../components/PharmacistLayout'
 import { usePatientDirectory, usePatientStats } from '../api/usePatientDirectory'
-import { usePatientFilter } from '../hooks/usePatientFilter'
+import { useNotifications } from '../hooks/useNotifications'
+import { usePatientFilter, type StatusFilter } from '../hooks/usePatientFilter'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { ROUTES } from '@configs/app.config'
 import { clsx } from 'clsx'
-import { exportToCSV, getDeactivationLabel } from '@utils/helpers'
+import { exportToCSV } from '@utils/helpers'
+import { PatientStatusBadge } from '@components/ui/StatusBadge'
 
 export default function PharmacistPatients() {
   const { data: patients, isLoading } = usePatientDirectory()
   const { data: stats } = usePatientStats()
+  const { unreadCount, reportsCount, messagesCount } = useNotifications()
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active')
 
@@ -49,7 +52,7 @@ export default function PharmacistPatients() {
         {/* HEADER SECTION */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl headline-font font-extrabold text-on-surface tracking-tight">Direktori Data Pasien</h2>
+            <h2 className="text-2xl sm:text-3xl font-headline font-extrabold text-on-surface tracking-tight">Direktori Data Pasien</h2>
             <p className="text-on-surface-variant text-sm mt-1 font-medium">Kelola dan pantau perkembangan pasien dalam perawatan kemoterapi.</p>
           </div>
           <div className="flex gap-3 relative w-full sm:w-auto justify-end">
@@ -85,7 +88,7 @@ export default function PharmacistPatients() {
                       <button
                         key={opt.value}
                         onClick={() => {
-                          setStatusFilter(opt.value as any)
+                          setStatusFilter(opt.value as StatusFilter)
                           setIsFilterOpen(false)
                         }}
                         className={clsx(
@@ -119,7 +122,7 @@ export default function PharmacistPatients() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-primary-container/30 p-6 rounded-lg border border-primary/5 group hover:shadow-md transition-all">
             <p className="text-on-primary-container/70 text-[10px] font-black uppercase tracking-widest mb-2">Total Pasien</p>
-            <h3 className="text-4xl headline-font font-bold text-primary">{stats?.total?.toLocaleString() ?? '—'}</h3>
+            <h3 className="text-4xl font-headline font-bold text-primary">{stats?.total?.toLocaleString() ?? '—'}</h3>
             <p className="text-primary text-[10px] mt-4 flex items-center gap-1 font-black uppercase tracking-wider">
               <span className="material-symbols-outlined text-sm">trending_up</span>
               Data Terkini
@@ -127,17 +130,17 @@ export default function PharmacistPatients() {
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border border-stone-100 group hover:border-tertiary/20 transition-all">
             <p className="text-stone-500 text-[10px] font-black uppercase tracking-widest mb-2">Status Kritis</p>
-            <h3 className="text-4xl headline-font font-bold text-tertiary">{stats?.critical ?? '0'}</h3>
+            <h3 className="text-4xl font-headline font-bold text-tertiary">{stats?.critical ?? '0'}</h3>
             <p className="text-tertiary text-[10px] mt-4 font-black uppercase tracking-wider">Membutuhkan perhatian segera</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border border-stone-100 group hover:border-secondary/20 transition-all">
             <p className="text-stone-500 text-[10px] font-black uppercase tracking-widest mb-2">Jadwal Minggu Ini</p>
-            <h3 className="text-4xl headline-font font-bold text-secondary">{stats?.scheduledThisWeek ?? '0'}</h3>
+            <h3 className="text-4xl font-headline font-bold text-secondary">{stats?.scheduledThisWeek ?? '0'}</h3>
             <p className="text-stone-400 text-[10px] mt-4 font-black uppercase tracking-wider">Sesi kemoterapi terencana</p>
           </div>
           <div className="bg-tertiary-container/20 p-6 rounded-lg border border-tertiary/5 group hover:shadow-md transition-all">
             <p className="text-on-tertiary-container/70 text-[10px] font-black uppercase tracking-widest mb-2">Edukasi Selesai</p>
-            <h3 className="text-4xl headline-font font-bold text-on-tertiary-container">{stats?.completedEducation ?? '0'}</h3>
+            <h3 className="text-4xl font-headline font-bold text-on-tertiary-container">{stats?.completedEducation ?? '0'}</h3>
             <p className="text-on-tertiary-container text-[10px] mt-4 font-black uppercase tracking-wider">Pasien memahami protokol</p>
           </div>
         </div>
@@ -233,37 +236,11 @@ export default function PharmacistPatients() {
                         {p.lastReportDate ? format(new Date(p.lastReportDate), 'dd MMM yyyy', { locale: id }) : 'Belum melapor'}
                       </td>
                       <td className="px-6 py-5">
-                        {p.isActive ? (
-                          <div className="flex items-center gap-2">
-                            <div className={clsx(
-                              "w-2 h-2 rounded-full",
-                              p.overallStatus === 'Stabil' ? "bg-teal-500" : 
-                              p.overallStatus === 'Butuh Tindakan' ? "bg-error animate-pulse" : "bg-amber-400"
-                            )}></div>
-                            <span className={clsx(
-                              "text-xs font-bold uppercase tracking-wider",
-                              p.overallStatus === 'Stabil' ? "text-teal-700" : 
-                              p.overallStatus === 'Butuh Tindakan' ? "text-error" : "text-amber-700"
-                            )}>
-                              {p.overallStatus}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <div className={clsx(
-                              "w-2 h-2 rounded-full",
-                              p.statusReason === 'deceased' ? "bg-rose-500" : 
-                              p.statusReason === 'discharged' ? "bg-emerald-500" : "bg-stone-400"
-                            )}></div>
-                            <span className={clsx(
-                              "text-xs font-bold uppercase tracking-wider",
-                              p.statusReason === 'deceased' ? "text-rose-700" : 
-                              p.statusReason === 'discharged' ? "text-emerald-700" : "text-stone-600"
-                            )}>
-                              Nonaktif — {getDeactivationLabel(p.statusReason)}
-                            </span>
-                          </div>
-                        )}
+                        <PatientStatusBadge 
+                          isActive={p.isActive ?? false} 
+                          overallStatus={p.overallStatus} 
+                          statusReason={p.statusReason} 
+                        />
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -329,37 +306,11 @@ export default function PharmacistPatients() {
                       </div>
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Status Overall</span>
-                        {p.isActive ? (
-                          <div className="flex items-center gap-1.5">
-                            <div className={clsx(
-                              "w-2 h-2 rounded-full",
-                              p.overallStatus === 'Stabil' ? "bg-teal-500" : 
-                              p.overallStatus === 'Butuh Tindakan' ? "bg-error animate-pulse" : "bg-amber-400"
-                            )}></div>
-                            <span className={clsx(
-                              "text-xs font-bold uppercase tracking-wider",
-                              p.overallStatus === 'Stabil' ? "text-teal-700" : 
-                              p.overallStatus === 'Butuh Tindakan' ? "text-error" : "text-amber-700"
-                            )}>
-                              {p.overallStatus}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            <div className={clsx(
-                              "w-2 h-2 rounded-full",
-                              p.statusReason === 'deceased' ? "bg-rose-500" : 
-                              p.statusReason === 'discharged' ? "bg-emerald-500" : "bg-stone-400"
-                            )}></div>
-                            <span className={clsx(
-                              "text-xs font-bold uppercase tracking-wider",
-                              p.statusReason === 'deceased' ? "text-rose-700" : 
-                              p.statusReason === 'discharged' ? "text-emerald-700" : "text-stone-600"
-                            )}>
-                              Nonaktif — {getDeactivationLabel(p.statusReason)}
-                            </span>
-                          </div>
-                        )}
+                        <PatientStatusBadge 
+                          isActive={p.isActive ?? false} 
+                          overallStatus={p.overallStatus} 
+                          statusReason={p.statusReason} 
+                        />
                       </div>
                     </div>
 
@@ -405,7 +356,7 @@ export default function PharmacistPatients() {
           <div className="flex-1 bg-secondary-fixed/10 p-6 sm:p-10 rounded-xl relative overflow-hidden group border border-secondary-container/10">
             <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-secondary-fixed/20 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
             <div className="relative z-10 max-w-lg">
-              <h4 className="text-2xl headline-font font-bold text-on-secondary-fixed mb-4 tracking-tight">Butuh panduan teknis?</h4>
+              <h4 className="text-2xl font-headline font-bold text-on-secondary-fixed mb-4 tracking-tight">Butuh panduan teknis?</h4>
               <p className="text-on-secondary-fixed-variant mb-8 leading-relaxed font-medium">Akses modul pembelajaran terbaru mengenai monitoring efek samping obat karsinogenik untuk meningkatkan kualitas pelaporan.</p>
               <Link 
                 to={ROUTES.PHARMA_EDUCATION}
@@ -417,12 +368,52 @@ export default function PharmacistPatients() {
           </div>
           
           <div className="w-full lg:w-80 bg-tertiary-fixed/10 p-6 sm:p-10 rounded-xl border border-tertiary-container/10 shadow-sm">
-            <h4 className="headline-font font-bold text-on-tertiary-fixed mb-6 tracking-tight flex items-center gap-2">
+            <h4 className="font-headline font-bold text-on-tertiary-fixed mb-6 tracking-tight flex items-center gap-2">
               <span className="material-symbols-outlined text-tertiary">notifications_active</span>
-              Notifikasi
+              Notifikasi {unreadCount > 0 && <span className="bg-error text-on-error text-[10px] font-black px-2 py-0.5 rounded-full">{unreadCount}</span>}
             </h4>
-            {/* TODO F-01: Notifikasi real dari Supabase realtime (Sprint 4) */}
-            <p className="text-sm text-stone-400 font-medium italic">Tidak ada notifikasi baru saat ini.</p>
+            
+            {unreadCount > 0 ? (
+              <div className="space-y-3">
+                {reportsCount > 0 && (
+                  <Link 
+                    to={ROUTES.PHARMA_DASHBOARD}
+                    className="flex items-center justify-between p-4 bg-white rounded-xl border border-tertiary-container/20 hover:border-tertiary hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-error/10 flex items-center justify-center text-error">
+                        <span className="material-symbols-outlined text-sm">assignment_late</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-on-surface">Laporan Masuk</p>
+                        <p className="text-xs text-stone-500">{reportsCount} laporan butuh evaluasi</p>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-stone-400 group-hover:text-tertiary transition-colors">chevron_right</span>
+                  </Link>
+                )}
+
+                {messagesCount > 0 && (
+                  <Link 
+                    to={ROUTES.PHARMA_CHAT}
+                    className="flex items-center justify-between p-4 bg-white rounded-xl border border-tertiary-container/20 hover:border-tertiary hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <span className="material-symbols-outlined text-sm">chat_bubble</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-on-surface">Pesan Baru</p>
+                        <p className="text-xs text-stone-500">{messagesCount} pesan belum dibaca</p>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-stone-400 group-hover:text-tertiary transition-colors">chevron_right</span>
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-stone-400 font-medium italic">Tidak ada notifikasi baru saat ini.</p>
+            )}
           </div>
         </div>
       </div>

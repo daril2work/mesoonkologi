@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </div>
 
           {/* Heading */}
-          <h1 className="headline-font text-3xl font-extrabold text-on-surface mb-4 tracking-tight">
+          <h1 className="font-headline text-3xl font-extrabold text-on-surface mb-4 tracking-tight">
             Terjadi Kendala Teknis
           </h1>
 
@@ -135,7 +135,7 @@ export class FeatureErrorBoundary extends Component<FeatureProps, FeatureState> 
           <span className="material-symbols-outlined text-4xl text-clinical-alert" style={{ fontVariationSettings: "'FILL' 1" }}>
             error
           </span>
-          <p className="font-bold text-on-surface headline-font">
+          <p className="font-bold text-on-surface font-headline">
             {this.props.featureName ? `Gagal memuat: ${this.props.featureName}` : 'Terjadi error pada komponen ini'}
           </p>
           <button

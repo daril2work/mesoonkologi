@@ -67,7 +67,7 @@ export default function ClinicianHistory() {
                         <span className="material-symbols-outlined text-3xl">account_circle</span>
                      </div>
                      <div>
-                        <h3 className="text-xl font-black text-stone-700 headline-font">{report.patient?.fullName}</h3>
+                        <h3 className="text-xl font-black text-stone-700 font-headline">{report.patient?.fullName}</h3>
                         <p className="text-[10px] font-black text-stone-300 uppercase tracking-widest">ID: #P-{report.patient?.id.slice(0, 5).toUpperCase()}</p>
                      </div>
                   </div>

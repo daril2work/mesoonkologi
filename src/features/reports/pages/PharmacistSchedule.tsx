@@ -7,6 +7,7 @@ import { id } from 'date-fns/locale'
 import { clsx } from 'clsx'
 import { supabase } from '@lib/supabase'
 import toast from 'react-hot-toast'
+import { logger } from '@utils/logger'
 
 // INT-05: Kapasitas maksimal klinik per hari — ganti magic number 10
 // Nilai ini bisa dipindah ke system_settings di masa mendatang
@@ -64,13 +65,13 @@ export default function PharmacistSchedule() {
         })
 
         if (error || data?.error) {
-          console.error('[Schedule WA Reminder]', error ?? data?.error)
+          logger.error('[Schedule WA Reminder]', error ?? data?.error)
           toast.error('Gagal menjadwalkan WA reminder, namun jadwal berhasil disimpan')
         } else {
           toast.success('WhatsApp Reminder H-1 dijadwalkan otomatis')
         }
       } catch (waError) {
-        console.error('[Schedule WA Reminder Error]', waError)
+        logger.error('[Schedule WA Reminder Error]', waError instanceof Error ? waError : undefined)
         toast.error('Gagal menjadwalkan WA otomatis, namun jadwal berhasil disimpan')
       }
     } catch (error: unknown) {
@@ -96,7 +97,7 @@ export default function PharmacistSchedule() {
     }
     
     const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`
-    window.open(waUrl, '_blank')
+    window.open(waUrl, '_blank', 'noopener,noreferrer')
   }
 
   const today = new Date()
@@ -320,19 +321,19 @@ export default function PharmacistSchedule() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-primary-container/30 p-8 rounded-2xl border border-primary/5 shadow-sm group hover:shadow-md transition-all">
                 <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">Total Hari Ini</p>
-                <h4 className="text-5xl font-black text-primary mt-3 headline-font tracking-tight">{todaySchedules.length}</h4>
+                <h4 className="text-5xl font-black text-primary mt-3 font-headline tracking-tight">{todaySchedules.length}</h4>
                 <p className="text-on-primary-container/60 text-xs font-bold mt-2">Pasien Terjadwal</p>
               </div>
               <div className="bg-tertiary-container/30 p-8 rounded-2xl border border-tertiary/5 shadow-sm group hover:shadow-md transition-all">
                 <p className="text-tertiary text-[10px] font-black uppercase tracking-[0.2em]">Sesi Kemo</p>
-                <h4 className="text-5xl font-black text-tertiary mt-3 headline-font tracking-tight">
+                <h4 className="text-5xl font-black text-tertiary mt-3 font-headline tracking-tight">
                   {todaySchedules.filter(s => s.title.includes('Kemo')).length}
                 </h4>
                 <p className="text-on-tertiary-container/60 text-xs font-bold mt-2">Slot Bed Terisi</p>
               </div>
               <div className="bg-surface-container-high/40 p-8 rounded-2xl border border-stone-100 shadow-sm">
                 <p className="text-stone-500 text-[10px] font-black uppercase tracking-[0.2em]">Kapasitas Klinik</p>
-                <h4 className="text-5xl font-black text-on-surface mt-3 headline-font tracking-tight">
+                <h4 className="text-5xl font-black text-on-surface mt-3 font-headline tracking-tight">
                   {Math.min(100, Math.round((todaySchedules.length / CLINIC_MAX_CAPACITY) * 100))}%
                 </h4>
                 <div className="w-full h-2.5 bg-white rounded-full mt-5 overflow-hidden border border-stone-100 shadow-inner">
@@ -348,7 +349,7 @@ export default function PharmacistSchedule() {
           {/* RIGHT COLUMN: TIMELINE */}
           <div className="col-span-12 xl:col-span-4 flex flex-col space-y-8">
             <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-bold headline-font text-on-surface tracking-tight">
+              <h3 className="text-2xl font-bold font-headline text-on-surface tracking-tight">
                 {isSelectedToday ? 'Timeline Hari Ini' : 'Timeline Jadwal'}
               </h3>
               <span className="text-[10px] font-black text-primary bg-primary-container/40 px-4 py-1.5 rounded-full uppercase tracking-widest">
@@ -393,7 +394,7 @@ export default function PharmacistSchedule() {
                             ? "bg-primary-container/10 border-primary-container/40 shadow-sm" 
                             : "bg-surface-container-low/30 border-transparent hover:border-stone-200"
                         )}>
-                          <h5 className="font-bold text-on-surface headline-font group-hover:text-primary transition-colors">{s.patientName}</h5>
+                          <h5 className="font-bold text-on-surface font-headline group-hover:text-primary transition-colors">{s.patientName}</h5>
                           <p className="text-[11px] text-stone-500 font-medium mt-1 uppercase tracking-tight">
                             ID: SN-{s.id.slice(0,5).toUpperCase()} • <span className="font-black text-primary">{s.title}</span>
                           </p>
@@ -450,23 +451,7 @@ export default function PharmacistSchedule() {
               </button>
             </div>
 
-            {/* Environmental Conditions */}
-            <div className="bg-surface-container-high/40 rounded-2xl p-6 flex items-center justify-between border border-stone-100">
-              <div>
-                <h6 className="text-xs font-black uppercase tracking-widest text-on-surface">Kondisi Lingkungan</h6>
-                <p className="text-[10px] font-bold text-stone-400 mt-1">Lobi Utama & Area Perawatan</p>
-              </div>
-              <div className="flex items-center gap-6">
-                <div className="text-center group">
-                  <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">thermostat</span>
-                  <p className="text-[10px] font-black text-on-surface mt-1">24°C</p>
-                </div>
-                <div className="text-center group">
-                  <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">air</span>
-                  <p className="text-[10px] font-black text-on-surface mt-1">Ideal</p>
-                </div>
-              </div>
-            </div>
+
           </div>
         </section>
         {/* ADD SCHEDULE MODAL */}
@@ -475,7 +460,7 @@ export default function PharmacistSchedule() {
             <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
               <div className="bg-primary p-8 text-on-primary">
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-2xl font-black headline-font">Tambah Jadwal Baru</h3>
+                  <h3 className="text-2xl font-black font-headline">Tambah Jadwal Baru</h3>
                   <button onClick={() => setIsModalOpen(false)} className="material-symbols-outlined hover:rotate-90 transition-transform">close</button>
                 </div>
                 <p className="text-on-primary/60 text-xs font-bold uppercase tracking-widest">Atur Sesi Klinis Pasien</p>

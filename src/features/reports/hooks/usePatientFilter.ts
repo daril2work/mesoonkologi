@@ -7,8 +7,8 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { PatientDirectoryItem } from '../types'
 
-type SortKey = 'status' | 'name' | 'oldest'
-type StatusFilter = 'all' | 'Butuh Tindakan' | 'Observasi' | 'Stabil'
+export type SortKey = 'status' | 'name' | 'oldest'
+export type StatusFilter = 'all' | 'Butuh Tindakan' | 'Observasi' | 'Stabil'
 
 const STATUS_PRIORITY: Record<string, number> = {
   'Butuh Tindakan': 0,

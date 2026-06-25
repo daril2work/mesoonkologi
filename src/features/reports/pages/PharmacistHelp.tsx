@@ -108,7 +108,7 @@ export default function PharmacistHelp() {
                 <span className="material-symbols-outlined text-4xl">{selectedDoc.icon}</span>
               </div>
               <div>
-                <h2 className="headline-font text-3xl sm:text-4xl font-black text-on-surface mb-2">{selectedDoc.title}</h2>
+                <h2 className="font-headline text-3xl sm:text-4xl font-black text-on-surface mb-2">{selectedDoc.title}</h2>
                 <p className="text-on-surface-variant text-base sm:text-lg font-medium">{selectedDoc.shortDesc}</p>
               </div>
             </header>
@@ -165,7 +165,7 @@ export default function PharmacistHelp() {
           /* LIST VIEW */
           <div className="animate-in fade-in duration-500">
             <header className="mb-8 sm:mb-12">
-              <h2 className="headline-font text-4xl sm:text-5xl font-black text-on-surface mb-3 tracking-tight">Pusat Bantuan</h2>
+              <h2 className="font-headline text-4xl sm:text-5xl font-black text-on-surface mb-3 tracking-tight">Pusat Bantuan</h2>
               <p className="text-on-surface-variant text-lg sm:text-xl font-medium">Temukan panduan lengkap pengoperasian portal klinis MESO.</p>
             </header>
 
@@ -192,7 +192,7 @@ export default function PharmacistHelp() {
             <section className="mt-12 sm:mt-20 bg-stone-50 rounded-3xl sm:rounded-[48px] p-6 sm:p-12 border border-stone-100">
               <div className="flex items-center gap-4 mb-6 sm:mb-10">
                 <div className="w-1.5 h-8 bg-primary rounded-full"></div>
-                <h3 className="headline-font text-2xl font-black">Pertanyaan Umum (FAQ)</h3>
+                <h3 className="font-headline text-2xl font-black">Pertanyaan Umum (FAQ)</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-12">
                 <div className="space-y-4">

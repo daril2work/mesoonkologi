@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@lib/supabase'
+import { logger } from '@utils/logger'
 
 export interface AppUserProfile {
   id: string
@@ -25,9 +26,10 @@ export function useStaffUsers() {
 
       if (err) throw err
       setUsers(data as AppUserProfile[])
-    } catch (err: any) {
-      console.error('[useStaffUsers]', err)
-      setError(err.message)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      logger.error('[useStaffUsers]', err instanceof Error ? err : undefined)
+      setError(message)
     } finally {
       setIsLoading(false)
     }
@@ -61,8 +63,8 @@ export function useSearchUsers(searchQuery: string) {
 
         if (error) throw error
         setResults(data as AppUserProfile[])
-      } catch (err: any) {
-        console.error('[useSearchUsers]', err)
+      } catch (err) {
+        logger.error('[useSearchUsers]', err instanceof Error ? err : undefined)
       } finally {
         setIsSearching(false)
       }

@@ -11,6 +11,7 @@ import { Toggle } from '@components/ui/Toggle'
 import { Button } from '@components/ui/Button'
 import { supabase } from '@lib/supabase'
 import { ROUTES } from '@configs/app.config'
+import { logger } from '@utils/logger'
 import { useAuthStore } from '../store'
 
 export default function LoginPage() {
@@ -74,8 +75,10 @@ export default function LoginPage() {
 
       toast.success('Berhasil masuk!')
       // Do nothing here — the useEffect above will redirect once DB fetch finishes
-    } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan yang tidak terduga.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error(message)
+      logger.error('[LoginPage]', err instanceof Error ? err : undefined)
       setIsLoading(false)
     }
   }

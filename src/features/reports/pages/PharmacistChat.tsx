@@ -54,7 +54,7 @@ export default function PharmacistChat() {
           selectedPatientId !== null ? "hidden md:flex" : "flex"
         )}>
           <div className="p-4 md:p-6 border-b border-stone-100 bg-white">
-            <h3 className="font-bold text-base md:text-lg headline-font">Pusat Pesan</h3>
+            <h3 className="font-bold text-base md:text-lg font-headline">Pusat Pesan</h3>
             <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mt-1">Konsultasi Pasien</p>
           </div>
           

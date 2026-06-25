@@ -18,7 +18,7 @@ export default function VitalsCard({ systolic, diastolic, heartRate, temperature
         </div>
         <div>
           <p className="text-[10px] md:text-xs font-black text-stone-400 uppercase tracking-widest mb-1">Detak Jantung</p>
-          <p className="text-xl md:text-4xl font-black headline-font text-stone-700">{heartRate ?? '—'} <span className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-widest">bpm</span></p>
+          <p className="text-xl md:text-4xl font-black font-headline text-stone-700">{heartRate ?? '—'} <span className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-widest">bpm</span></p>
         </div>
       </div>
 
@@ -28,7 +28,7 @@ export default function VitalsCard({ systolic, diastolic, heartRate, temperature
         </div>
         <div>
           <p className="text-[10px] md:text-xs font-black text-stone-400 uppercase tracking-widest mb-1">Suhu Tubuh</p>
-          <p className="text-xl md:text-4xl font-black headline-font text-stone-700">{temperature ?? '—'} <span className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-widest">°C</span></p>
+          <p className="text-xl md:text-4xl font-black font-headline text-stone-700">{temperature ?? '—'} <span className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-widest">°C</span></p>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ export default function VitalsCard({ systolic, diastolic, heartRate, temperature
            </div>
            <div>
              <p className="text-[10px] md:text-xs font-black text-stone-400 uppercase tracking-widest mb-1">Tekanan Darah</p>
-             <p className="text-2xl md:text-5xl font-black headline-font text-stone-700">{systolic && diastolic ? `${systolic}/${diastolic}` : '—'} <span className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-widest ml-2">mmHg</span></p>
+             <p className="text-2xl md:text-5xl font-black font-headline text-stone-700">{systolic && diastolic ? `${systolic}/${diastolic}` : '—'} <span className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-widest ml-2">mmHg</span></p>
            </div>
         </div>
         {/* Decorative Waveform (Bars) */}
@@ -65,7 +65,7 @@ export default function VitalsCard({ systolic, diastolic, heartRate, temperature
           </div>
           <div>
             <p className="text-[10px] md:text-xs font-black text-stone-400 uppercase tracking-widest mb-1">Saturasi O₂</p>
-            <p className="text-xl md:text-4xl font-black headline-font text-stone-700">
+            <p className="text-xl md:text-4xl font-black font-headline text-stone-700">
               {spo2} <span className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-widest">%</span>
             </p>
           </div>

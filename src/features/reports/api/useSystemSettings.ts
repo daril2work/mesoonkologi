@@ -35,6 +35,15 @@ async function fetchSystemSettings(): Promise<SystemSettings> {
   }
 }
 
+export function useFonnteStatus() {
+  return useQuery({
+    queryKey: ['fonnteStatus'],
+    queryFn: checkFonnteStatusViaServer,
+    staleTime: 60 * 1000, // 1 menit
+    refetchOnWindowFocus: false,
+  })
+}
+
 // ============================================================
 // Hook utama: membaca settings
 // ============================================================

@@ -1,4 +1,5 @@
 import { supabase } from '@lib/supabase'
+import { logger } from '@utils/logger'
 
 export interface WAOptions {
   target: string    // Phone number (e.g., 628123456789)
@@ -29,7 +30,7 @@ export const whatsappService = {
 
       return data
     } catch (error) {
-      console.error('[WhatsAppService Error]', error)
+      logger.error('[WhatsAppService Error]', error instanceof Error ? error : undefined)
       throw error
     }
   },

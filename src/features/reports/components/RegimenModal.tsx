@@ -62,7 +62,7 @@ export function RegimenModal({ isOpen, onClose, patientId, reportId }: RegimenMo
       />
       <div className="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-8 bg-surface-container-low border-b border-stone-100">
-          <h3 className="headline-font text-2xl font-black text-on-surface tracking-tight">Ubah Regimen Terapi</h3>
+          <h3 className="font-headline text-2xl font-black text-on-surface tracking-tight">Ubah Regimen Terapi</h3>
           <p className="text-on-surface-variant text-sm mt-1">Sesuaikan jenis regimen kemoterapi untuk pasien ini.</p>
         </div>
 

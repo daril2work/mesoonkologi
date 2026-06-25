@@ -61,10 +61,10 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
   }
 
   const navItems = [
-    { label: 'Antrean Laporan', icon: 'assignment', path: '/pharma/dashboard' },
-    { label: 'Data Pasien', icon: 'group', path: '/pharma/patients' },
-    { label: 'Manajemen Edukasi', icon: 'school', path: '/pharma/education' },
-    { label: 'Pengaturan Jadwal', icon: 'calendar_today', path: '/pharma/schedule' },
+    { label: 'Antrean Laporan', icon: 'assignment', path: ROUTES.PHARMA_DASHBOARD },
+    { label: 'Data Pasien', icon: 'group', path: ROUTES.PHARMA_PATIENTS },
+    { label: 'Manajemen Edukasi', icon: 'school', path: ROUTES.PHARMA_EDUCATION },
+    { label: 'Pengaturan Jadwal', icon: 'calendar_today', path: ROUTES.PHARMA_SCHEDULE },
   ]
 
   return (
@@ -242,7 +242,7 @@ export default function PharmacistLayout({ children }: PharmacistLayoutProps) {
               </div>
               
               <button 
-                onClick={() => navigate('/pharma/settings')}
+                onClick={() => navigate(ROUTES.PHARMA_SETTINGS)}
                 className="text-stone-600 hover:text-teal-600 transition-all opacity-90 active:scale-95"
               >
                 <span className="material-symbols-outlined">settings</span>

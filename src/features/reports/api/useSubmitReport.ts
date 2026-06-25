@@ -66,7 +66,7 @@ export function useSubmitReport() {
 
             const recipient = settingData?.value
             if (recipient) {
-              await fonnteService.sendMessage({
+              await whatsappService.sendMessage({
                 target: recipient,
                 message: 'CITO! Ada laporan MESO yang perlu anda tindak lanjuti segera!'
               })

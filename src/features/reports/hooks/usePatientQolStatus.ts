@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@lib/supabase'
 import toast from 'react-hot-toast'
+import { logger } from '@utils/logger'
 
 export function usePatientQolStatus(userId: string | undefined) {
   const [isQolActive, setIsQolActive] = useState(false)
@@ -15,7 +16,7 @@ export function usePatientQolStatus(userId: string | undefined) {
       .eq('id', userId)
       .single()
       .then(({ data, error }) => {
-        if (error) console.error('[usePatientQolStatus] Load QoL Error:', error)
+        if (error) logger.error('[usePatientQolStatus] Load QoL Error:', error)
         if (data) {
           setIsQolActive(!!data.is_qol_active)
         }

@@ -11,6 +11,7 @@ import { Button } from '@components/ui/Button'
 import { AppLoader } from '@components/ui/AppLoader'
 import { supabase } from '@lib/supabase'
 import { ROUTES } from '@configs/app.config'
+import { logger } from '@utils/logger'
 import { useAuthStore } from '../store'
 
 export default function ResetPasswordPage() {
@@ -85,8 +86,10 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         navigate(ROUTES.LOGIN, { replace: true })
       }, 3000)
-    } catch (err: any) {
-      toast.error('Terjadi kesalahan yang tidak terduga.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error('Terjadi kesalahan yang tidak terduga: ' + message)
+      logger.error('[ResetPasswordPage]', err instanceof Error ? err : undefined)
       setIsLoading(false)
     }
   }

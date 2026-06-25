@@ -57,7 +57,7 @@ export function InterventionModal({ isOpen, onClose, patientId: _patientId, repo
       />
       <div className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-8 bg-surface-container-low border-b border-stone-100">
-          <h3 className="headline-font text-2xl font-black text-on-surface tracking-tight">Catatan Intervensi Klinis</h3>
+          <h3 className="font-headline text-2xl font-black text-on-surface tracking-tight">Catatan Intervensi Klinis</h3>
           <p className="text-on-surface-variant text-sm mt-1">Berikan panduan atau tindakan klinis untuk pasien ini.</p>
         </div>
 

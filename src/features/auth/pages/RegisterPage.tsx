@@ -6,6 +6,7 @@ import { FormInput } from '@components/ui/FormInput'
 import { Button } from '@components/ui/Button'
 import { supabase } from '@lib/supabase'
 import { ROUTES } from '@configs/app.config'
+import { logger } from '@utils/logger'
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -56,8 +57,10 @@ export default function RegisterPage() {
       toast.success('Pendaftaran berhasil! Menyambungkan Anda...')
       // Navigate to patient dashboard
       navigate(ROUTES.PATIENT_DASHBOARD, { replace: true })
-    } catch (err: any) {
-      toast.error('Terjadi kesalahan tidak terduga.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+      toast.error('Terjadi kesalahan tidak terduga: ' + message)
+      logger.error('[RegisterPage]', err instanceof Error ? err : undefined)
     } finally {
       setIsLoading(false)
     }

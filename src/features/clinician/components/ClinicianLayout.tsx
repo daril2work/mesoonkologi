@@ -39,7 +39,7 @@ export default function ClinicianLayout({ children, title, showBack, backPath = 
               <span className="material-symbols-outlined text-white text-lg md:text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>clinical_notes</span>
             </div>
             
-            <h1 className="text-sm md:text-xl font-bold text-[#006a60] headline-font tracking-tight whitespace-nowrap">
+            <h1 className="text-sm md:text-xl font-bold text-[#006a60] font-headline tracking-tight whitespace-nowrap">
               {showBack ? (
                 <span className="md:hidden text-teal-900">{title || 'Detail'}</span>
               ) : null}

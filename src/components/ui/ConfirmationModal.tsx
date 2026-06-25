@@ -120,7 +120,7 @@ export function ConfirmationModal({
             <div className="space-y-1.5 pt-1">
               <h2
                 id="modal-title"
-                className="text-lg font-extrabold text-on-surface headline-font tracking-tight leading-tight"
+                className="text-lg font-extrabold text-on-surface font-headline tracking-tight leading-tight"
               >
                 {title}
               </h2>
