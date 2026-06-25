@@ -4,18 +4,20 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // SEC-03: CORS dibatasi ke origin spesifik, bukan wildcard (*)
+// Secara dinamis mendukung localhost untuk development
 // @ts-ignore: Deno context
-const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') ?? 'https://mesoonkologi.netlify.app'
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-// SEC-04: Batas maksimal percobaan OTP salah sebelum diinvalidasi
-const MAX_OTP_ATTEMPTS = 5
+const defaultOrigin = Deno.env.get('ALLOWED_ORIGIN') ?? 'https://mesoonkologi.netlify.app'
 
 serve(async (req: Request) => {
+  const reqOrigin = req.headers.get('origin') || ''
+  const allowedOrigins = [defaultOrigin, 'http://localhost:5173', 'http://localhost:3000']
+  const corsOrigin = allowedOrigins.includes(reqOrigin) ? reqOrigin : defaultOrigin
+
+  const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS })

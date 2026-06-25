@@ -33,7 +33,7 @@ export function useNotifications() {
     if (!user) return
 
     const channel = supabase
-      .channel('realtime-notifications')
+      .channel(`realtime-notifications-${user.id}-${Math.random()}`)
       // Listen to Reports
       .on(
         'postgres_changes',
