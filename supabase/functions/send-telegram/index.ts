@@ -53,6 +53,10 @@ serve(async (req: Request) => {
     const appUrl = ALLOWED_ORIGIN
     const detailLink = `${appUrl}/pharmacist/patients/${patientId}`
 
+    const waText = `🚨 *ESKALASI MESO (CITO)* 🚨\n\nPasien: ${patientName}\n\nTerdapat efek samping Mayor yang butuh instruksi medis segera.\n\nCek Rekam Medis:\n${detailLink}`
+    const encodedWaText = encodeURIComponent(waText)
+    const waLink = `https://wa.me/?text=${encodedWaText}`
+
     const tgMessage = `🚨 <b>ESKALASI MESO (CITO)</b> 🚨
 
 <b>Pasien:</b> ${safeName}
@@ -63,7 +67,9 @@ Terdapat pelaporan efek samping Mayor yang telah di-eskalasi oleh Apoteker dan m
 <i>Mohon Apoteker jaga untuk meneruskan pesan ini ke WhatsApp Dokter Onkologi yang bertugas.</i>
 
 <b>Tautan Detail Pasien:</b>
-<a href="${detailLink}">Buka Rekam Medis</a>`
+<a href="${detailLink}">Buka Rekam Medis</a>
+
+<a href="${waLink}">Klik untuk Kirim WA ke Dokter</a>`
 
     // @ts-ignore: Deno context
     const telegramBotToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
