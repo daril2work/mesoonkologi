@@ -28,7 +28,8 @@ export default function PharmacistEducation() {
     category: 'Terapi',
     videoUrl: '',
     imageUrl: DEFAULT_THUMBNAIL,
-    isFeatured: false
+    isFeatured: false,
+    content: ''
   })
 
   // S-01: State untuk delete confirmation modal (menggantikan confirm())
@@ -41,16 +42,17 @@ export default function PharmacistEducation() {
       title: item.title,
       description: item.description || '',
       category: item.category,
-      videoUrl: item.videoUrl,
+      videoUrl: item.videoUrl || '',
       imageUrl: item.imageUrl || DEFAULT_THUMBNAIL,
-      isFeatured: item.isFeatured
+      isFeatured: item.isFeatured,
+      content: item.content || ''
     })
     setIsModalOpen(true)
   }
 
   const handleOpenCreate = () => {
     setEditTargetId(null)
-    setNewVideo({ title: '', description: '', category: 'Terapi', videoUrl: '', imageUrl: DEFAULT_THUMBNAIL, isFeatured: false })
+    setNewVideo({ title: '', description: '', category: 'Terapi', videoUrl: '', imageUrl: DEFAULT_THUMBNAIL, isFeatured: false, content: '' })
     setIsModalOpen(true)
   }
 
@@ -69,7 +71,7 @@ export default function PharmacistEducation() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newVideo.title || !newVideo.videoUrl) return
+    if (!newVideo.title) return
     
     if (editTargetId) {
       updateEducation({
@@ -85,8 +87,7 @@ export default function PharmacistEducation() {
       })
     } else {
       createEducation({
-        ...newVideo,
-        content: ''
+        ...newVideo
       }, {
         onSuccess: () => {
           toast.success('Konten edukasi berhasil ditambahkan')
@@ -368,10 +369,9 @@ export default function PharmacistEducation() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">URL Video</label>
+                      <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">URL Video (Opsional)</label>
                       <input 
                         type="url" 
-                        required
                         value={newVideo.videoUrl}
                         onChange={(e) => setNewVideo({...newVideo, videoUrl: e.target.value})}
                         placeholder="https://youtube.com/..."
@@ -431,6 +431,17 @@ export default function PharmacistEducation() {
                       onChange={(e) => setNewVideo({...newVideo, description: e.target.value})}
                       placeholder="Jelaskan isi materi secara ringkas..."
                       className="w-full px-6 py-4 bg-stone-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none placeholder:text-stone-300"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Konten Artikel (Opsional jika ada Video)</label>
+                    <textarea 
+                      rows={6}
+                      value={newVideo.content}
+                      onChange={(e) => setNewVideo({...newVideo, content: e.target.value})}
+                      placeholder="Ketik isi materi artikel di sini..."
+                      className="w-full px-6 py-4 bg-stone-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-y placeholder:text-stone-300"
                     />
                   </div>
 

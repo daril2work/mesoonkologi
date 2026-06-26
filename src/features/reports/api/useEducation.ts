@@ -76,6 +76,7 @@ export function useUpdateEducation() {
       const payload: any = {}
       if (updates.title !== undefined) payload.title = updates.title
       if (updates.description !== undefined) payload.description = updates.description
+      if (updates.content !== undefined) payload.content = updates.content
       if (updates.category !== undefined) payload.category = updates.category
       if (updates.imageUrl !== undefined) payload.image_url = updates.imageUrl
       if (updates.videoUrl !== undefined) payload.video_url = updates.videoUrl

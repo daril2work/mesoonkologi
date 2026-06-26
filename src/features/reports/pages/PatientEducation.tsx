@@ -43,6 +43,7 @@ export default function PatientEducation() {
   const navigate = useNavigate()
   const [selectedTab, setSelectedTab] = useState<TabKey>('Semua Topik')
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null)
+  const [activeArticle, setActiveArticle] = useState<EducationMaterial | null>(null)
 
   const category = TAB_TO_CATEGORY[selectedTab]
   const { data: materials, isLoading } = useEducationMaterials(category)
@@ -51,10 +52,10 @@ export default function PatientEducation() {
   const handleContentClick = (item: EducationMaterial) => {
     if (item.videoUrl) {
       setActiveVideoUrl(item.videoUrl)
+    } else if (item.content) {
+      setActiveArticle(item)
     } else {
-      // Jika tidak ada video, bisa diarahkan ke modal detail atau link eksternal jika ada
-      // Untuk sementara, kita asumsi video adalah interaksi utama yang diinginkan user
-      alert('Materi artikel sedang disiapkan. Silakan hubungi apoteker via chat untuk panduan lebih lanjut.')
+      alert('Materi ini belum memiliki konten video maupun artikel.')
     }
   }
 
@@ -265,6 +266,115 @@ export default function PatientEducation() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+          </div>
+        </div>
+      )}
+
+      {/* Article Modal */}
+      {activeArticle && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backdropFilter: 'blur(8px)', padding: '24px'
+        }}>
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: '700px', maxHeight: '90vh',
+            background: '#ffffff', borderRadius: '32px', overflow: 'hidden',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column'
+          }}>
+            {/* Header / Cover */}
+            <div style={{
+              position: 'relative', height: activeArticle.imageUrl ? '250px' : '80px',
+              background: '#046b5e', shrink: 0
+            }}>
+              {activeArticle.imageUrl && (
+                <img 
+                  src={activeArticle.imageUrl} 
+                  alt={activeArticle.title} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} 
+                />
+              )}
+              <button 
+                onClick={() => setActiveArticle(null)}
+                style={{
+                  position: 'absolute', top: '16px', right: '16px', zIndex: 10,
+                  background: 'rgba(255,255,255,0.9)', border: 'none', color: '#1b1c1c',
+                  width: '40px', height: '40px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                }}
+              >
+                <X size={20} />
+              </button>
+              {activeArticle.imageUrl && (
+                <div style={{
+                  position: 'absolute', bottom: '0', left: '0', right: '0',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                  padding: '40px 24px 20px'
+                }}>
+                  <div style={{
+                    background: '#b2f0e0', color: '#046b5e', padding: '4px 12px',
+                    borderRadius: '99px', fontSize: '0.65rem', fontWeight: 800,
+                    display: 'inline-block', marginBottom: '8px'
+                  }}>
+                    {activeArticle.category.toUpperCase()}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Content Area */}
+            <div style={{ padding: '32px', overflowY: 'auto' }}>
+              {!activeArticle.imageUrl && (
+                <div style={{
+                  background: '#b2f0e0', color: '#046b5e', padding: '4px 12px',
+                  borderRadius: '99px', fontSize: '0.65rem', fontWeight: 800,
+                  display: 'inline-block', marginBottom: '16px'
+                }}>
+                  {activeArticle.category.toUpperCase()}
+                </div>
+              )}
+              <h1 style={{
+                fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '1.75rem',
+                fontWeight: 800, color: '#1b1c1c', margin: '0 0 16px 0', lineHeight: 1.2
+              }}>
+                {activeArticle.title}
+              </h1>
+              {activeArticle.description && (
+                <p style={{
+                  fontFamily: '"Inter", sans-serif', fontSize: '1.05rem',
+                  color: '#424848', margin: '0 0 24px 0', lineHeight: 1.6,
+                  fontWeight: 600
+                }}>
+                  {activeArticle.description}
+                </p>
+              )}
+              <div style={{
+                fontFamily: '"Inter", sans-serif', fontSize: '1rem',
+                color: '#727878', lineHeight: 1.8, whiteSpace: 'pre-wrap'
+              }}>
+                {activeArticle.content}
+              </div>
+            </div>
+            
+            {/* Footer Action */}
+            <div style={{
+              padding: '24px 32px', borderTop: '1px solid #f0eded', background: '#faf9f9',
+              display: 'flex', justifyContent: 'flex-end', shrink: 0
+            }}>
+              <button 
+                onClick={() => setActiveArticle(null)}
+                style={{
+                  background: '#046b5e', color: '#ffffff', border: 'none',
+                  padding: '12px 32px', borderRadius: '99px', fontWeight: 800,
+                  fontSize: '0.95rem', cursor: 'pointer',
+                  boxShadow: '0 8px 24px rgba(4, 107, 94, 0.2)'
+                }}
+              >
+                Selesai Membaca
+              </button>
+            </div>
           </div>
         </div>
       )}
